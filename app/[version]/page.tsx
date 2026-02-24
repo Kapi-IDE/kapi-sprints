@@ -371,6 +371,25 @@ export default async function VersionPage({
 
   const streamEntries = await parseEntries(path.join(opsDir, 'blackboard/entries'))
 
+  // Foundation doc scan
+  const foundationDir = path.join(process.cwd(), 'docs/foundation')
+  const foundationDocs = [
+    { label: 'Vision & Mission', path: 'docs/foundation/vision.md', file: 'vision.md' },
+    { label: 'Market & Users',   path: 'docs/foundation/market.md', file: 'market.md' },
+    { label: 'Product Spec',     path: 'docs/foundation/spec.md',   file: 'spec.md'   },
+  ]
+  const specStatus = {
+    docs: await Promise.all(foundationDocs.map(async doc => {
+      try {
+        const content = await fs.readFile(path.join(foundationDir, doc.file), 'utf-8')
+        const wordCount = content.split(/\s+/).filter(Boolean).length
+        return { ...doc, status: (wordCount < 80 ? 'thin' : 'ok') as 'ok' | 'thin' | 'missing' }
+      } catch {
+        return { ...doc, status: 'missing' as const }
+      }
+    })),
+  }
+
   let inboxItems: string[] = []
   try {
     const backlogMd   = await fs.readFile(path.join(opsDir, 'backlog.md'), 'utf-8')
@@ -387,6 +406,7 @@ export default async function VersionPage({
 
   return (
     <DevDashboard
+      specStatus={specStatus}
       version={version}
       versions={versions}
       sprintState={sprintState}

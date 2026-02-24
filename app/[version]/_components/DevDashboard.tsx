@@ -8,6 +8,8 @@ import type {
   ParsedBlock, ParsedTask, BlackboardData, GitStatus, LayerScore, StreamEntry,
 } from '../page'
 import { RightPanel } from './RightPanel'
+import { OverviewPanel } from './OverviewPanel'
+import type { SpecStatus } from './OverviewPanel'
 import { PROJECT } from '@/project.config'
 
 const SPRINT_DURATION_SECS = 3 * 60 * 60
@@ -15,6 +17,7 @@ const SPRINT_DURATION_SECS = 3 * 60 * 60
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Props {
+  specStatus: SpecStatus
   version: string
   versions: string[]
   sprintState: 'active' | 'upcoming'
@@ -38,7 +41,7 @@ interface Props {
 }
 
 type SprintStage  = 'plan' | 'build' | 'qa' | 'review' | 'done'
-type WorkspaceTab = 'blackboard' | 'agents' | 'backlog' | 'stream' | 'adrs' | 'status'
+type WorkspaceTab = 'overview' | 'blackboard' | 'agents' | 'backlog' | 'stream' | 'adrs' | 'status'
 
 interface ParsedAgent {
   name: string
@@ -997,6 +1000,20 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
         </div>
       </div>
 
+      {/* Overview (pinned) */}
+      <div className="border-b border-zinc-800/40 py-1.5">
+        <button
+          onClick={() => onView({ mode: 'workspace', tab: 'overview' })}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
+            activeView.mode === 'workspace' && activeView.tab === 'overview'
+              ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-100'
+          }`}
+        >
+          <span className="shrink-0 text-[10px]">◈</span>
+          <span className="flex-1 font-medium">Overview</span>
+        </button>
+      </div>
+
       {/* Blackboard (pinned) */}
       <div className="border-b border-zinc-800/40 py-1.5">
         <button
@@ -1184,6 +1201,7 @@ function StageNav({ version, activeView, onView, doneCount, totalTasks, hasCodeR
 // ─── DevDashboard ─────────────────────────────────────────────────────────────
 
 export function DevDashboard({
+  specStatus,
   version, versions, sprintState, currentVersion, prevVersion, nextVersion, sprintStates,
   blocks, blackboard, prdHtml, gitStatus, preflightHtml, reviewHtml, codeReviewHtml,
   layerScores, demoHtml, gapsHtml, historyHtml, streamEntries, inboxItems,
@@ -1334,6 +1352,14 @@ export function DevDashboard({
             )}
             {activeView.mode === 'stage' && activeView.stage === 'done' && (
               <DoneStage version={version} doneCount={doneCount} totalTasks={totalTasks} gitStatus={gitStatus}/>
+            )}
+            {activeView.mode === 'workspace' && activeView.tab === 'overview' && (
+              <OverviewPanel
+                specStatus={specStatus}
+                blocks={blocks}
+                layerScores={layerScores}
+                blackboard={blackboard}
+              />
             )}
             {activeView.mode === 'workspace' && activeView.tab === 'blackboard' && (
               <BlackboardView blackboard={blackboard}/>
