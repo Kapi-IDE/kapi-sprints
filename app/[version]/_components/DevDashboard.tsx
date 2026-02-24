@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import type {
   ParsedBlock, ParsedTask, BlackboardData, GitStatus, LayerScore, StreamEntry,
 } from '../page'
@@ -985,8 +986,8 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
       {/* Header */}
       <div className="px-3 py-3.5 border-b border-zinc-800/60">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <span className="text-emerald-400 text-xs font-bold font-mono">{PROJECT.short}</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+            <Image src="/logo-white.png" alt={PROJECT.name} width={32} height={32} className="object-contain" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-zinc-100 truncate">{PROJECT.name}</p>
@@ -1269,9 +1270,7 @@ export function DevDashboard({
       {/* Title bar */}
       <div className="h-9 shrink-0 flex items-center px-4 gap-3 border-b border-zinc-800/80 bg-zinc-950 select-none">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
-            <span className="text-emerald-400 text-[9px] font-bold font-mono">{PROJECT.short}</span>
-          </div>
+          <Image src="/logo-white.png" alt={PROJECT.name} width={16} height={16} className="object-contain opacity-80" />
           <span className="text-xs font-medium text-zinc-400">{PROJECT.name}</span>
         </div>
         <span className="text-zinc-800">/</span>

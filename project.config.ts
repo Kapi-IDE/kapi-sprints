@@ -3,14 +3,14 @@
 
 export const PROJECT = {
   /** Full project name shown in the sidebar and title bar */
-  name: 'My Project',
+  name: 'Kapi Sprints',
 
-  /** 2-letter initials for the logo badge */
-  short: 'mp',
+  /** 2-letter initials (fallback when logo image is not used) */
+  short: 'ks',
 
   /** One-line description (shown in README / about) */
-  description: 'Sprint dashboard for any software project',
+  description: 'Sprint dashboard for Claude Code teams',
 
   /** Link to your source repo (used in README) */
-  repo: 'https://github.com/your-org/your-project',
+  repo: 'https://github.com/Kapi-IDE/kapi-sprints',
 }
