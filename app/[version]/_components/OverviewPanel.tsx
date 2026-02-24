@@ -174,9 +174,9 @@ function QACard({ layerScores }: { layerScores: LayerScore[] }) {
               <span className="text-[9px] text-zinc-500 mt-0.5">avg%</span>
             </Ring>
           </div>
-          {/* Layer bars */}
+          {/* Layer bars — top 4 by lowest score (most at risk) */}
           <div className="space-y-1.5">
-            {layerScores.map(layer => (
+            {[...layerScores].sort((a, b) => a.baseline - b.baseline).slice(0, 4).map(layer => (
               <div key={layer.name} className="space-y-0.5">
                 <div className="flex justify-between">
                   <span className="text-[10px] text-zinc-500 truncate">{layer.name}</span>
