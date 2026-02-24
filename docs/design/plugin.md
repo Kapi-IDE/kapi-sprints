@@ -152,17 +152,17 @@ Skills to extract from Kapi platform (`/Users/bv/Code/active/kapi-platform/`):
 
 | Source | Target | Generalization |
 |--------|--------|----------------|
-| `docs/internal/skills/preflight/SKILL.md` | `plugin/skills/preflight/SKILL.md` | Replace 8-layer references with config-based layers |
-| `docs/internal/skills/scorecard/SKILL.md` | `plugin/skills/scorecard/SKILL.md` | Read layers from kapi-sprints.config.md |
-| `docs/internal/skills/prd/SKILL.md` | `plugin/skills/prd/SKILL.md` | Remove Kapi-specific domain knowledge |
-| `docs/internal/skills/dev/SKILL.md` | `plugin/skills/dev/SKILL.md` | Mostly as-is |
-| `docs/internal/skills/test/SKILL.md` | `plugin/skills/test/SKILL.md` | Mostly as-is |
-| `docs/internal/skills/walkthrough/SKILL.md` | `plugin/skills/walkthrough/SKILL.md` | Mostly as-is |
-| `docs/internal/skills/checkpoint/SKILL.md` | `plugin/skills/checkpoint/SKILL.md` | As-is (universal) |
-| `docs/internal/skills/resume/SKILL.md` | `plugin/skills/resume/SKILL.md` | As-is (universal) |
-| `docs/internal/skills/post/SKILL.md` | `plugin/skills/post/SKILL.md` | As-is (universal) |
-| `docs/internal/agents/arch-reviewer.md` | `plugin/agents/arch-reviewer.md` | Remove Kapi architecture specifics |
-| `docs/internal/agents/test-planner.md` | `plugin/agents/test-planner.md` | Remove Kapi test specifics |
+| `.claude/skills/preflight/SKILL.md` | `plugin/skills/preflight/SKILL.md` | Replace 8-layer references with config-based layers |
+| `.claude/skills/scorecard/SKILL.md` | `plugin/skills/scorecard/SKILL.md` | Read layers from kapi-sprints.config.md |
+| `.claude/skills/prd/SKILL.md` | `plugin/skills/prd/SKILL.md` | Remove Kapi-specific domain knowledge |
+| `.claude/skills/dev/SKILL.md` | `plugin/skills/dev/SKILL.md` | Mostly as-is |
+| `.claude/skills/test/SKILL.md` | `plugin/skills/test/SKILL.md` | Mostly as-is |
+| `.claude/skills/walkthrough/SKILL.md` | `plugin/skills/walkthrough/SKILL.md` | Mostly as-is |
+| `.claude/skills/checkpoint/SKILL.md` | `plugin/skills/checkpoint/SKILL.md` | As-is (universal) |
+| `.claude/skills/resume/SKILL.md` | `plugin/skills/resume/SKILL.md` | As-is (universal) |
+| `.claude/skills/post/SKILL.md` | `plugin/skills/post/SKILL.md` | As-is (universal) |
+| `.claude/agents/arch-reviewer.md` | `plugin/agents/arch-reviewer.md` | Remove Kapi architecture specifics |
+| `.claude/agents/test-planner.md` | `plugin/agents/test-planner.md` | Remove Kapi test specifics |
 
 ---
 
