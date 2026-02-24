@@ -1315,24 +1315,20 @@ export function DevDashboard({
       {/* Body */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {!(activeView.mode === 'workspace' && activeView.tab === 'overview') && (
-          <LeftSidebar
-            version={version} versions={versions} sprintStates={sprintStates}
-            currentVersion={currentVersion} blackboard={blackboard}
-            inboxItems={inboxItems} streamEntries={streamEntries}
-            activeView={activeView} onView={setActiveView}
-          />
-        )}
+        <LeftSidebar
+          version={version} versions={versions} sprintStates={sprintStates}
+          currentVersion={currentVersion} blackboard={blackboard}
+          inboxItems={inboxItems} streamEntries={streamEntries}
+          activeView={activeView} onView={setActiveView}
+        />
 
         {/* Center panel */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          {!(activeView.mode === 'workspace' && activeView.tab === 'overview') && (
-            <StageNav
-              version={version} activeView={activeView} onView={setActiveView}
-              doneCount={doneCount} totalTasks={totalTasks}
-              hasCodeReview={!!codeReviewHtml} hasReview={!!reviewHtml}
-            />
-          )}
+          <StageNav
+            version={version} activeView={activeView} onView={setActiveView}
+            doneCount={doneCount} totalTasks={totalTasks}
+            hasCodeReview={!!codeReviewHtml} hasReview={!!reviewHtml}
+          />
 
           <div className={`flex-1 ${buildHasFlex ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
             {activeView.mode === 'stage' && activeView.stage === 'plan' && (
@@ -1389,7 +1385,7 @@ export function DevDashboard({
           </div>
         </div>
 
-        <RightPanel/>
+        {!(activeView.mode === 'workspace' && activeView.tab === 'overview') && <RightPanel/>}
       </div>
 
       {/* Status bar */}
