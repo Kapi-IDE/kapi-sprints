@@ -1,166 +1,191 @@
-# Onboarding: Backwards Build Flow
+# Onboarding: The Foundation Gate
 
-> `/sprint init` and `/sprint spec` — the Kapi pitch in disguise.
+> `/sprint init` — you can't sprint without knowing why.
 
 ---
 
 ## Core Insight
 
-The plugin IS the backwards build experience:
-- `/sprint spec` teaches PMs to specify before building
-- `/scorecard` teaches them to define quality layers
-- `/checkpoint` teaches them the blackboard pattern
+The old flow was too permissive — "point me to a file" let people skip the thinking.
+The new flow mandates that foundation docs exist (or get created) before any sprint can start.
 
-By the time they look at Kapi, they already think this way.
+**The pitch this teaches:** *"You don't start by coding. You don't even start by speccing features. You start by knowing why."*
 
 ---
 
-## First-Time Experience
+## The Foundation Gate
 
 ```
-User installs plugin → runs /sprint init
-         ↓
-"Where are your specs?"
-         ↓
-    ┌─────────────────────────────────────┐
-    │  Option A: "I have a PRD/spec"      │ → Point to file(s)
-    │  Option B: "Start from scratch"     │ → /sprint spec (backwards build)
-    └─────────────────────────────────────┘
-         ↓
-    Plugin reads spec → generates:
-    - kapi-sprints.config.md
-    - docs/operations/sprints/v1/
-    - docs/operations/blackboard/
-    - scorecard layers from spec
-         ↓
-    "Run /preflight v1 when ready"
+/sprint init
+       ↓
+  "Let me check your project foundation..."
+       ↓
+  Scans for 3 required docs:
+
+  ┌──────────────────────────────────────────────┐
+  │  FOUNDATION CHECK                             │
+  │                                               │
+  │  1. Vision & Mission    ❌ Not found          │
+  │     Why does this exist? Who is it for?       │
+  │                                               │
+  │  2. Market & Users      ❌ Not found          │
+  │     Who pays? What pain? What alternatives?   │
+  │                                               │
+  │  3. Product Spec        ❌ Not found          │
+  │     What are you building? Core flows?        │
+  │                                               │
+  │  You need all 3 before your first sprint.     │
+  │  I'll help you write them — takes ~15 min.    │
+  │                                               │
+  │  [Start with Vision]                          │
+  └──────────────────────────────────────────────┘
 ```
 
----
-
-## Option A: "I have a PRD/spec"
-
-User points to an existing file:
+If docs exist, validate them for completeness:
 
 ```
-> /sprint init
-
-Where are your specs?
-
-  A) I have a PRD/spec file    ← user picks this
-  B) Start from scratch
-
-Point me to it: docs/product-spec.md
-
-Reading... Found:
-  - 4 major features
-  - API + frontend + auth concerns
-  - No explicit quality layers
-
-I'll set up your sprint structure. What quality layers matter for this project?
-
-  Suggested based on your spec:
-  1. API — routes, validation, error handling
-  2. Auth — session management, permissions
-  3. Frontend — components, responsiveness
-  4. Tests — coverage, integration
-
-  [Accept] or customize?
-
-Generating...
-  ✓ kapi-sprints.config.md
-  ✓ docs/operations/sprints/v1/
-  ✓ docs/operations/blackboard/
-
-Run /preflight v1 when ready.
-💡 Dashboard: npx kapi-sprints dashboard (in another terminal)
+  ┌──────────────────────────────────────────────┐
+  │  FOUNDATION CHECK                             │
+  │                                               │
+  │  1. Vision & Mission    ✅ docs/foundation/vision.md   │
+  │  2. Market & Users      ⚠️  Thin — no ICP     │
+  │  3. Product Spec        ✅ docs/foundation/spec.md     │
+  │                                               │
+  │  Market doc needs an Ideal Customer Profile.  │
+  │  Want me to help flesh it out?                │
+  │                                               │
+  │  [Fix Market Doc]  [Skip — sprint anyway]     │
+  └──────────────────────────────────────────────┘
 ```
 
 ---
 
-## Option B: "Start from scratch" (`/sprint spec`)
+## The Three Foundation Docs
 
-The backwards build flow — conversational PRD generation:
+### 1. Vision & Mission (`docs/foundation/vision.md`)
 
+Claude asks:
 ```
-> /sprint spec
-
-What are you building?
-> A task management app with AI prioritization
-
-Tell me more about the users and core flows:
-> PMs who need to triage backlogs. The AI should suggest priority
-> based on dependencies, deadlines, and team capacity.
-
-Here's what I understand:
-
-  ## Task AI Prioritizer
-  
-  **Users:** Product Managers
-  **Core flows:**
-  1. Import backlog (Jira, CSV, manual)
-  2. AI analyzes dependencies + deadlines
-  3. Suggested priority ranking
-  4. PM accepts/rejects/adjusts
-  5. Export back to source
-  
-  [Looks good] or [Revise]?
-
-What quality layers matter? (What should /scorecard audit?)
-> API reliability, the AI scoring accuracy, and clean UI
-
-Setting up:
-  1. API — routes, validation, error handling
-  2. AI Scoring — accuracy, explainability, edge cases
-  3. UI — components, accessibility, responsiveness
-  4. Data — models, migrations, import/export
-  5. Tests — coverage, e2e, integration
-
-What coding conventions matter?
-> TypeScript strict, Tailwind, Vitest
-
-Generating...
-  ✓ kapi-sprints.config.md
-  ✓ docs/operations/sprints/v1/
-  ✓ docs/operations/blackboard/
-  ✓ docs/spec.md (your PRD)
-  ✓ scorecard layers configured
-
-Run /preflight v1 to validate readiness.
-Run /prd v1 to plan your first sprint.
-💡 Dashboard: npx kapi-sprints dashboard (in another terminal)
+"What problem does this solve that nobody else is solving well?"
+"If this succeeds wildly in 3 years, what does the world look like?"
+"Who specifically suffers without this?"
 ```
 
----
-
-## Generated Config
-
-`kapi-sprints.config.md`:
-
+Generates:
 ```markdown
-# Project: Task AI Prioritizer
+# Vision & Mission
 
-## Spec
-docs/spec.md
+## Vision
+[One sentence: the world you're creating]
 
-## Layers (what /scorecard audits)
-1. API — routes, validation, error handling
-2. AI Scoring — accuracy, explainability, edge cases
-3. UI — components, accessibility, responsiveness
-4. Data — models, migrations, import/export
-5. Tests — coverage, e2e, integration
+## Mission
+[One sentence: how you get there]
 
-## Conventions
-- TypeScript strict mode
-- Tailwind for styling
-- Vitest for unit tests
+## Why Now
+[What changed that makes this possible/urgent]
 
-## Sprint Directory
-docs/operations/sprints
-
-## Blackboard Directory
-docs/operations/blackboard
+## Why You
+[What unfair advantage do you have]
 ```
+
+---
+
+### 2. Market & Users (`docs/foundation/market.md`)
+
+Claude asks:
+```
+"Who is the primary buyer? Describe them specifically."
+"What do they do today without your product?"
+"What have they tried that failed? Why did it fail?"
+"How much do they pay for the current bad solution?"
+```
+
+Generates:
+```markdown
+# Market & Users
+
+## Ideal Customer Profile
+[Specific: role, company size, pain trigger]
+
+## Current Alternatives
+| Alternative | Why it fails |
+|------------|-------------|
+| ...        | ...         |
+
+## Willingness to Pay
+[Evidence or hypothesis]
+
+## Market Size
+[TAM/SAM/SOM or just "enough to matter because..."]
+```
+
+---
+
+### 3. Product Spec (`docs/foundation/spec.md`)
+
+Claude asks:
+```
+"What are the 3-5 core user flows?"
+"What's the simplest version that delivers value?"
+"What are you explicitly NOT building?"
+```
+
+Generates:
+```markdown
+# Product Spec
+
+## Core Flows
+1. [User does X → gets Y]
+2. ...
+
+## MVP Scope
+[What ships first]
+
+## Out of Scope
+[What you're saying no to — this is as important]
+
+## Success Criteria
+[How you know it's working]
+```
+
+---
+
+## Full Revised Flow
+
+```
+/sprint init
+       ↓
+  Foundation check (scan for 3 docs)
+       ↓
+  Missing? → Claude generates via conversation (~15 min)
+  Thin?    → Claude suggests what to flesh out
+  All ✅   → Proceed
+       ↓
+  "What quality layers matter for this project?"
+  (reads foundation docs to suggest layers)
+       ↓
+  Generates:
+    ✓ kapi-sprints.config.md (layers, conventions, paths)
+    ✓ docs/operations/sprints/v1/
+    ✓ docs/operations/blackboard/
+       ↓
+  "Run /preflight v1 when ready"
+```
+
+**`/sprint spec` is gone as a separate command.** Foundation doc creation is now baked into `/sprint init`. You can't skip it. You can't go straight to sprinting without answering "why does this exist?"
+
+---
+
+## Validation Rules
+
+| Doc | Required sections | Warning if missing |
+|-----|------------------|--------------------|
+| `vision.md` | Vision, Mission | Why Now, Why You |
+| `market.md` | ICP, Alternatives | Willingness to Pay, Market Size |
+| `spec.md` | Core Flows, MVP Scope | Out of Scope, Success Criteria |
+
+A doc is **thin** if it has the required sections but they're < 50 words each.
+A doc is **missing** if the file doesn't exist.
 
 ---
 
@@ -168,14 +193,14 @@ docs/operations/blackboard
 
 | What user experiences | What it teaches | Kapi equivalent |
 |----------------------|-----------------|-----------------|
-| `/sprint spec` | Specify before building | Blueprint configuration |
-| `/scorecard` | Define quality layers upfront | Eval framework (30+ criteria) |
+| Foundation Gate | Specify before building | Blueprint configuration |
+| Vision doc | Articulate the why | Product Builder tool |
+| Market doc | Know your buyer | Enterprise Atlas (10 departments) |
+| Spec doc | Define core flows | Blueprint manifest + UI patterns |
+| `/scorecard` | Define quality layers | Eval framework (18 criteria) |
 | `/checkpoint` | Blackboard coordination | Agent state management |
-| `/resume` | Context recovery across sessions | Cross-session memory (Mem0) |
-| `/preflight` | Readiness gates | Compliance checks |
-| Config-driven layers | Everything is configurable | Blueprint manifest |
 
-**The user doesn't realize they're learning Kapi's methodology.** They're just running a sprint tool. But when they visit getkapi.com and see "55 blueprints with built-in evals and HITL gates," they think: *"Oh, that's like my scorecard layers and checkpoints, but for AI agents."*
+**The user doesn't realize they're learning Kapi's methodology.** They're just setting up a sprint tool. But when they visit getkapi.com and see "182 blueprints with built-in evals and HITL gates," they think: *"Oh, that's like my foundation gate and scorecard layers, but for AI agents."*
 
 ---
 

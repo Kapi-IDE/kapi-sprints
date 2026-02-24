@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 // ─── RightPanel ───────────────────────────────────────────────────────────────
 // Team health metrics panel (right sidebar).
 // Numbers are illustrative — replace with real instrumentation when you wire
@@ -81,9 +83,9 @@ export function RightPanel() {
         <div className="rounded bg-zinc-900 px-2.5 py-2.5 space-y-2">
           {[
             { step: '1', text: 'Edit project.config.ts with your project name' },
-            { step: '2', text: 'Run /prd v1 in Claude Code to plan your first sprint' },
-            { step: '3', text: 'Run /dev v1 to start building with TDD' },
-            { step: '4', text: 'Post findings to blackboard with /post' },
+            { step: '2', text: 'Run /sprint init in Claude Code — foundation gate + scaffold' },
+            { step: '3', text: 'Run /prd v1 to plan your first sprint' },
+            { step: '4', text: 'Run /dev v1 to build with TDD' },
           ].map(({ step, text }) => (
             <div key={step} className="flex items-start gap-2">
               <span className="text-[9px] font-bold text-emerald-700 mt-0.5 shrink-0">{step}.</span>
@@ -91,6 +93,12 @@ export function RightPanel() {
             </div>
           ))}
         </div>
+        <Link
+          href="/get-started"
+          className="block text-center text-[10px] text-emerald-600 hover:text-emerald-400 transition-colors py-1"
+        >
+          Full setup guide →
+        </Link>
       </section>
 
     </div>
