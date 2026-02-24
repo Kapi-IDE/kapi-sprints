@@ -1278,13 +1278,14 @@ export function DevDashboard({
         {sprintState === 'active' && version === currentVersion && (
           <span className="text-[9px] px-1.5 py-px rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 uppercase tracking-wide">current</span>
         )}
-        <div className="ml-auto flex items-center gap-3 text-[10px] font-mono text-zinc-600">
+        <div className="ml-auto flex items-center gap-4 text-[10px] font-mono text-zinc-600">
           {gitStatus && (
             <>
               <span className="text-emerald-700">{gitStatus.currentBranch}</span>
               {gitStatus.uncommittedCount > 0 && <span className="text-amber-700">~{gitStatus.uncommittedCount}</span>}
             </>
           )}
+          <a href="/docs" className="hover:text-zinc-400 transition-colors">docs</a>
           <span>
             <button onClick={() => prevVersion && router.push(`/${prevVersion}`)} disabled={!prevVersion} className="px-1 text-zinc-700 hover:text-zinc-500 disabled:opacity-20">‹</button>
             <button onClick={() => nextVersion && router.push(`/${nextVersion}`)} disabled={!nextVersion} className="px-1 text-zinc-700 hover:text-zinc-500 disabled:opacity-20">›</button>

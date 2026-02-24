@@ -24,3 +24,162 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ─── Doc prose styles ─────────────────────────────────────────────────────── */
+
+.prose-doc {
+  color: #d4d4d8;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.prose-doc h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f4f4f5;
+  margin: 0 0 1.25rem;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.75rem;
+}
+
+.prose-doc h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e4e4e7;
+  margin: 2.25rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.prose-doc h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #d4d4d8;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.prose-doc h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  margin: 1.25rem 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prose-doc p {
+  margin: 0.75rem 0;
+}
+
+.prose-doc a {
+  color: #34d399;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: #10b98133;
+}
+
+.prose-doc a:hover {
+  color: #6ee7b7;
+  text-decoration-color: #10b98166;
+}
+
+.prose-doc ul, .prose-doc ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-doc li {
+  margin: 0.3rem 0;
+}
+
+.prose-doc li::marker {
+  color: #52525b;
+}
+
+.prose-doc code {
+  font-family: ui-monospace, 'Geist Mono', monospace;
+  font-size: 0.8125rem;
+  background: #27272a;
+  color: #a3e635;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid #3f3f46;
+}
+
+.prose-doc pre {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+}
+
+.prose-doc pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #d4d4d8;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.prose-doc blockquote {
+  border-left: 3px solid #10b981;
+  margin: 1.25rem 0;
+  padding: 0.5rem 0 0.5rem 1.25rem;
+  color: #a1a1aa;
+  background: #10b9810a;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.prose-doc blockquote p { margin: 0; }
+
+.prose-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.875rem;
+}
+
+.prose-doc thead tr {
+  border-bottom: 1px solid #3f3f46;
+}
+
+.prose-doc th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: #a1a1aa;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prose-doc td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #27272a;
+  vertical-align: top;
+}
+
+.prose-doc tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-doc hr {
+  border: none;
+  border-top: 1px solid #27272a;
+  margin: 2rem 0;
+}
+
+.prose-doc strong { color: #e4e4e7; font-weight: 600; }
+.prose-doc em     { color: #a1a1aa; }
+
+/* Mermaid output centering */
+.mermaid-output svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
