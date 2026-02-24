@@ -271,7 +271,7 @@ async function parseEntries(dir: string): Promise<StreamEntry[]> {
 
 export async function generateMetadata({ params }: { params: Promise<{ version: string }> }) {
   const { version } = await params
-  return { title: `Dev Dashboard · ${version}` }
+  return { title: `Kapi Sprints · ${version}` }
 }
 
 export default async function VersionPage({
