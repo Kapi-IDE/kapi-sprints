@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import type {
   ParsedBlock, ParsedTask, BlackboardData, GitStatus, LayerScore, StreamEntry,
 } from '../page'
@@ -1269,10 +1270,10 @@ export function DevDashboard({
 
       {/* Title bar */}
       <div className="h-9 shrink-0 flex items-center px-4 gap-3 border-b border-zinc-800/80 bg-zinc-950 select-none">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Image src="/kapi_logo.png" alt="Kapi Sprints" width={16} height={16} className="object-contain opacity-80" />
           <span className="text-xs font-medium text-zinc-400">Kapi Sprints</span>
-        </div>
+        </Link>
         <span className="text-zinc-800">/</span>
         <span className="text-xs font-mono text-zinc-300">{version}</span>
         {sprintState === 'active' && version === currentVersion && (
