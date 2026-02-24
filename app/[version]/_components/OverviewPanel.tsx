@@ -1,6 +1,6 @@
 'use client'
 
-import type { ParsedBlock, LayerScore, BlackboardData } from '../page'
+import type { ParsedBlock, LayerScore, BlackboardData, StreamEntry } from '../page'
 
 export interface FoundationDoc {
   label: string
@@ -15,7 +15,7 @@ export interface SpecStatus {
 // ─── SVG ring ─────────────────────────────────────────────────────────────────
 
 function Ring({
-  pct, size = 72, stroke = 6, color, trackColor = '#27272a', children,
+  pct, size = 56, stroke = 5, color, trackColor = '#27272a', children,
 }: {
   pct: number; size?: number; stroke?: number; color: string; trackColor?: string
   children?: React.ReactNode
@@ -28,29 +28,22 @@ function Ring({
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
         <circle cx={cx} cy={cx} r={r} fill="none" stroke={trackColor} strokeWidth={stroke} />
-        <circle
-          cx={cx} cy={cx} r={r} fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={`${capped * c} ${c}`}
-          strokeLinecap="round"
-        />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={`${capped * c} ${c}`} strokeLinecap="round" />
       </svg>
       {children && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {children}
-        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
       )}
     </div>
   )
 }
 
-// ─── Card shell ───────────────────────────────────────────────────────────────
+// ─── Compact metric card ──────────────────────────────────────────────────────
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function MetricCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-zinc-900 border border-zinc-800 px-5 pt-4 pb-5 flex flex-col gap-4 min-w-0">
-      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 font-mono">{title}</p>
+    <div className="rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 flex flex-col gap-3 min-w-0">
+      <p className="text-[9px] uppercase tracking-[0.14em] text-zinc-600 font-mono">{title}</p>
       {children}
     </div>
   )
@@ -64,39 +57,32 @@ function SpecCard({ specStatus }: { specStatus: SpecStatus }) {
   const pct   = total > 0 ? done / total : 0
   const color = pct === 1 ? '#10b981' : pct >= 0.5 ? '#f59e0b' : '#ef4444'
 
-  const dotColor: Record<string, string> = {
-    ok:      'bg-emerald-400',
-    thin:    'bg-amber-400',
-    missing: 'bg-zinc-700',
+  const dotCls: Record<string, string> = {
+    ok: 'bg-emerald-400', thin: 'bg-amber-400', missing: 'bg-zinc-700',
   }
-  const labelColor: Record<string, string> = {
-    ok:      'text-emerald-400',
-    thin:    'text-amber-400',
-    missing: 'text-zinc-600',
+  const txtCls: Record<string, string> = {
+    ok: 'text-emerald-400', thin: 'text-amber-400', missing: 'text-zinc-600',
   }
 
   return (
-    <Card title="Spec Status">
-      {/* Ring centered */}
-      <div className="flex justify-center">
-        <Ring pct={pct} size={76} stroke={7} color={color}>
-          <span className="text-lg font-bold text-zinc-100 leading-none">{done}/{total}</span>
-          <span className="text-[9px] text-zinc-500 mt-0.5">docs</span>
+    <MetricCard title="Spec Status">
+      <div className="flex items-center gap-3">
+        <Ring pct={pct} size={52} stroke={5} color={color}>
+          <span className="text-sm font-bold text-zinc-100 leading-none">{done}/{total}</span>
         </Ring>
+        <div className="flex-1 space-y-1.5 min-w-0">
+          {specStatus.docs.map(doc => (
+            <div key={doc.path} className="flex items-center gap-1.5 min-w-0">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls[doc.status]}`} />
+              <span className="text-[10px] text-zinc-400 flex-1 truncate">{doc.label}</span>
+              <span className={`text-[9px] font-mono shrink-0 ${txtCls[doc.status]}`}>
+                {doc.status === 'ok' ? 'Ready' : doc.status === 'thin' ? 'Thin' : '—'}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-      {/* Doc list */}
-      <div className="space-y-2">
-        {specStatus.docs.map(doc => (
-          <div key={doc.path} className="flex items-center gap-2 min-w-0">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor[doc.status]}`} />
-            <span className="text-[11px] text-zinc-400 flex-1 truncate">{doc.label}</span>
-            <span className={`text-[10px] font-mono shrink-0 ${labelColor[doc.status]}`}>
-              {doc.status === 'ok' ? 'Ready' : doc.status === 'thin' ? 'Thin' : 'Missing'}
-            </span>
-          </div>
-        ))}
-      </div>
-    </Card>
+    </MetricCard>
   )
 }
 
@@ -111,91 +97,73 @@ function VelocityCard({ blocks }: { blocks: ParsedBlock[] }) {
   const color    = pct === 1 ? '#10b981' : '#6366f1'
 
   return (
-    <Card title="Sprint Velocity">
-      {/* Ring centered */}
-      <div className="flex justify-center">
-        <Ring pct={pct} size={76} stroke={8} color={color} trackColor="#1e1e2a">
-          <span className="text-lg font-bold text-zinc-100 leading-none">{pctInt}%</span>
-          <span className="text-[9px] text-zinc-500 mt-0.5">done</span>
+    <MetricCard title="Sprint Velocity">
+      <div className="flex items-center gap-3">
+        <Ring pct={pct} size={52} stroke={5} color={color} trackColor="#1e1e2a">
+          <span className="text-sm font-bold text-zinc-100 leading-none">{pctInt}%</span>
         </Ring>
-      </div>
-      {/* Stats */}
-      {total === 0 ? (
-        <p className="text-[11px] text-zinc-600 text-center">Run /prd v1 to add tasks</p>
-      ) : (
-        <div className="space-y-2">
-          {[
-            { label: 'Completed', value: done },
-            { label: 'Remaining', value: total - done },
-            { label: 'Total',     value: total },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between items-center">
-              <span className="text-[11px] text-zinc-500">{label}</span>
-              <span className="text-[11px] font-mono tabular-nums text-zinc-200">{value}</span>
-            </div>
-          ))}
-          <div className="w-full h-[3px] rounded-full bg-zinc-800 overflow-hidden mt-1">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pctInt}%`, background: color }}
-            />
-          </div>
+        <div className="flex-1 space-y-1.5 min-w-0">
+          {total === 0 ? (
+            <p className="text-[10px] text-zinc-600">Run /prd v1</p>
+          ) : (
+            <>
+              {[['Done', done], ['Left', total - done], ['Total', total]].map(([l, v]) => (
+                <div key={String(l)} className="flex justify-between">
+                  <span className="text-[10px] text-zinc-500">{l}</span>
+                  <span className="text-[10px] font-mono tabular-nums text-zinc-200">{v}</span>
+                </div>
+              ))}
+              <div className="w-full h-[2px] rounded-full bg-zinc-800 overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pctInt}%`, background: color }} />
+              </div>
+            </>
+          )}
         </div>
-      )}
-    </Card>
+      </div>
+    </MetricCard>
   )
 }
 
 // ─── 3. QA Quality ────────────────────────────────────────────────────────────
 
 function QACard({ layerScores }: { layerScores: LayerScore[] }) {
-  const avg = layerScores.length > 0
-    ? Math.round(layerScores.reduce((s, l) => s + l.baseline, 0) / layerScores.length)
-    : 0
+  const avg      = layerScores.length > 0
+    ? Math.round(layerScores.reduce((s, l) => s + l.baseline, 0) / layerScores.length) : 0
   const barColor = (n: number) => n >= 80 ? '#10b981' : n >= 60 ? '#f59e0b' : '#ef4444'
+  const top4     = [...layerScores].sort((a, b) => a.baseline - b.baseline).slice(0, 4)
 
   return (
-    <Card title="QA Quality">
+    <MetricCard title="QA Quality">
       {layerScores.length === 0 ? (
-        <>
-          <div className="flex justify-center">
-            <Ring pct={0} size={76} stroke={7} color="#3f3f46">
-              <span className="text-lg font-bold text-zinc-600 leading-none">—</span>
-            </Ring>
-          </div>
-          <p className="text-[11px] text-zinc-600 text-center">Run /scorecard v1</p>
-        </>
+        <div className="flex items-center gap-3">
+          <Ring pct={0} size={52} stroke={5} color="#3f3f46">
+            <span className="text-sm font-bold text-zinc-600">—</span>
+          </Ring>
+          <p className="text-[10px] text-zinc-600">Run /scorecard v1</p>
+        </div>
       ) : (
-        <>
-          {/* Ring centered */}
-          <div className="flex justify-center">
-            <Ring pct={avg / 100} size={76} stroke={7} color={barColor(avg)}>
-              <span className="text-lg font-bold text-zinc-100 leading-none">{avg}</span>
-              <span className="text-[9px] text-zinc-500 mt-0.5">avg%</span>
-            </Ring>
-          </div>
-          {/* Layer bars — top 4 by lowest score (most at risk) */}
-          <div className="space-y-1.5">
-            {[...layerScores].sort((a, b) => a.baseline - b.baseline).slice(0, 4).map(layer => (
-              <div key={layer.name} className="space-y-0.5">
+        <div className="flex items-center gap-3">
+          <Ring pct={avg / 100} size={52} stroke={5} color={barColor(avg)}>
+            <span className="text-sm font-bold text-zinc-100 leading-none">{avg}</span>
+          </Ring>
+          <div className="flex-1 space-y-1.5 min-w-0">
+            {top4.map(layer => (
+              <div key={layer.name} className="space-y-[2px]">
                 <div className="flex justify-between">
                   <span className="text-[10px] text-zinc-500 truncate">{layer.name}</span>
-                  <span className="text-[10px] font-mono tabular-nums shrink-0 ml-1" style={{ color: barColor(layer.baseline) }}>
-                    {layer.baseline}%
-                  </span>
+                  <span className="text-[9px] font-mono tabular-nums ml-1 shrink-0"
+                    style={{ color: barColor(layer.baseline) }}>{layer.baseline}%</span>
                 </div>
-                <div className="h-[3px] rounded-full bg-zinc-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${layer.baseline}%`, background: barColor(layer.baseline) }}
-                  />
+                <div className="h-[2px] rounded-full bg-zinc-800 overflow-hidden">
+                  <div className="h-full rounded-full"
+                    style={{ width: `${layer.baseline}%`, background: barColor(layer.baseline) }} />
                 </div>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
-    </Card>
+    </MetricCard>
   )
 }
 
@@ -207,44 +175,95 @@ function BlockersCard({ blackboard }: { blackboard: BlackboardData }) {
   const fg    = clear ? '#10b981' : '#ef4444'
 
   return (
-    <Card title="Blockers">
-      {/* Number centered in rings */}
-      <div className="flex justify-center">
-        <div className="relative" style={{ width: 76, height: 76 }}>
-          <svg width={76} height={76}>
-            <circle cx={38} cy={38} r={35} fill="none" stroke={clear ? '#10b98118' : '#ef444418'} strokeWidth={1} />
-            <circle cx={38} cy={38} r={27} fill={clear ? '#10b9810a' : '#ef44440a'} stroke={clear ? '#10b98128' : '#ef444428'} strokeWidth={1} />
+    <MetricCard title="Blockers">
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0" style={{ width: 52, height: 52 }}>
+          <svg width={52} height={52}>
+            <circle cx={26} cy={26} r={24} fill="none" stroke={clear ? '#10b98118' : '#ef444418'} strokeWidth={1} />
+            <circle cx={26} cy={26} r={18} fill={clear ? '#10b9810a' : '#ef44440a'}
+              stroke={clear ? '#10b98128' : '#ef444428'} strokeWidth={1} />
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold leading-none tabular-nums" style={{ color: fg }}>{count}</span>
-            <span className="text-[9px] text-zinc-500 mt-0.5">
-              {clear ? 'clear' : count === 1 ? 'blocker' : 'blockers'}
-            </span>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xl font-bold leading-none tabular-nums" style={{ color: fg }}>{count}</span>
           </div>
         </div>
-      </div>
-      {/* List */}
-      {clear ? (
-        <div className="text-center space-y-0.5">
-          <p className="text-xs text-emerald-400">All clear</p>
-          <p className="text-[11px] text-zinc-600">No active blockers</p>
-        </div>
-      ) : (
-        <ul className="space-y-1.5">
-          {blackboard.blockers.slice(0, 3).map((b, i) => (
-            <li key={i} className="flex gap-1.5 items-start">
-              <span className="text-red-500 text-[9px] mt-[3px] shrink-0">▲</span>
-              <span className="text-[11px] text-zinc-400 leading-snug line-clamp-2">
-                {b.replace(/^\*\*[^*]+\*\*\s*—\s*/, '')}
-              </span>
-            </li>
-          ))}
-          {blackboard.blockers.length > 3 && (
-            <li className="text-[10px] text-zinc-600 font-mono">+{blackboard.blockers.length - 3} more</li>
+        <div className="flex-1 min-w-0">
+          {clear ? (
+            <div>
+              <p className="text-[10px] text-emerald-400">All clear</p>
+              <p className="text-[9px] text-zinc-600 mt-0.5">No active blockers</p>
+            </div>
+          ) : (
+            <ul className="space-y-1">
+              {blackboard.blockers.slice(0, 3).map((b, i) => (
+                <li key={i} className="flex gap-1 items-start">
+                  <span className="text-red-500 text-[8px] mt-px shrink-0">▲</span>
+                  <span className="text-[10px] text-zinc-400 leading-snug line-clamp-1">
+                    {b.replace(/^\*\*[^*]+\*\*\s*—\s*/, '')}
+                  </span>
+                </li>
+              ))}
+              {blackboard.blockers.length > 3 && (
+                <li className="text-[9px] text-zinc-600 font-mono">+{blackboard.blockers.length - 3} more</li>
+              )}
+            </ul>
           )}
-        </ul>
-      )}
-    </Card>
+        </div>
+      </div>
+    </MetricCard>
+  )
+}
+
+// ─── Blackboard section panel ─────────────────────────────────────────────────
+
+interface SectionConfig {
+  title: string
+  dot: string
+  emptyText: string
+}
+
+const SECTION_CFG: Record<string, SectionConfig> = {
+  decisions: { title: 'Open Decisions', dot: 'bg-amber-400',  emptyText: 'No open decisions' },
+  queue:     { title: 'Queue',          dot: 'bg-violet-400', emptyText: 'Queue is empty'    },
+  findings:  { title: 'Findings',       dot: 'bg-sky-400',    emptyText: 'No findings yet'   },
+  directives:{ title: 'Directives',     dot: 'bg-violet-400', emptyText: 'No directives'     },
+}
+
+const BADGE_CFG: Record<string, string> = {
+  decisions:  'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  queue:      'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  findings:   'bg-sky-500/10 text-sky-400 border-sky-500/20',
+  directives: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+}
+
+function BlackboardSection({ type, items }: { type: string; items: string[] }) {
+  const cfg = SECTION_CFG[type]
+  return (
+    <div className="rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col min-h-0 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/50 shrink-0">
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+        <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-mono flex-1">{cfg.title}</span>
+        {items.length > 0 && (
+          <span className={`text-[9px] font-mono px-1.5 py-px rounded border ${BADGE_CFG[type]}`}>
+            {items.length}
+          </span>
+        )}
+      </div>
+      {/* Items */}
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+        {items.length === 0 ? (
+          <p className="text-[11px] text-zinc-700 py-2">{cfg.emptyText}</p>
+        ) : (
+          items.map((item, i) => (
+            <div key={i} className="flex items-start gap-2 py-1 border-b border-zinc-800/30 last:border-0">
+              <span className={`w-1 h-1 rounded-full shrink-0 mt-1.5 ${cfg.dot} opacity-60`} />
+              <p className="text-[11px] text-zinc-400 leading-relaxed">{item.replace(/^\*\*[^*]+\*\*\s*—?\s*/, '')}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -255,17 +274,31 @@ interface Props {
   blocks: ParsedBlock[]
   layerScores: LayerScore[]
   blackboard: BlackboardData
+  streamEntries: StreamEntry[]
 }
 
-export function OverviewPanel({ specStatus, blocks, layerScores, blackboard }: Props) {
+export function OverviewPanel({ specStatus, blocks, layerScores, blackboard, streamEntries }: Props) {
+  const queueItems = streamEntries.filter(e => e.type === 'queued').map(e => e.title ?? e.raw ?? '')
+
   return (
-    <div className="p-5 overflow-y-auto h-full">
-      <div className="grid grid-cols-4 gap-4 h-full">
+    <div className="h-full flex flex-col gap-4 p-5 overflow-hidden">
+
+      {/* Row 1 — compact metric cards */}
+      <div className="grid grid-cols-4 gap-4 shrink-0">
         <SpecCard     specStatus={specStatus} />
         <VelocityCard blocks={blocks} />
         <QACard       layerScores={layerScores} />
         <BlockersCard blackboard={blackboard} />
       </div>
+
+      {/* Row 2 — blackboard intel 2×2 */}
+      <div className="grid grid-cols-2 grid-rows-2 gap-4 flex-1 min-h-0">
+        <BlackboardSection type="decisions"  items={blackboard.decisions} />
+        <BlackboardSection type="queue"      items={queueItems} />
+        <BlackboardSection type="findings"   items={blackboard.findings} />
+        <BlackboardSection type="directives" items={blackboard.directives} />
+      </div>
+
     </div>
   )
 }

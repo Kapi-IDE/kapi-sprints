@@ -1359,6 +1359,7 @@ export function DevDashboard({
                 blocks={blocks}
                 layerScores={layerScores}
                 blackboard={blackboard}
+                streamEntries={streamEntries}
               />
             )}
             {activeView.mode === 'workspace' && activeView.tab === 'blackboard' && (
