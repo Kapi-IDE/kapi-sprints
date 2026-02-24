@@ -293,45 +293,109 @@ export default function GetStartedPage() {
           </div>
         </section>
 
+        {/* What you get */}
+        <section className="space-y-5">
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-100">What gets generated</h2>
+            <p className="text-sm text-zinc-400 mt-1">
+              After the foundation gate passes, <code className="font-mono text-zinc-300">/sprint init</code> scaffolds everything you need.
+            </p>
+          </div>
+          <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
+            <div className="px-4 py-2.5 bg-zinc-800/60 border-b border-zinc-700/50 text-[11px] text-zinc-400 uppercase tracking-widest font-mono">
+              Output
+            </div>
+            <div className="px-5 py-4 font-mono text-xs space-y-2">
+              {[
+                'kapi-sprints.config.md',
+                'docs/foundation/vision.md',
+                'docs/foundation/market.md',
+                'docs/foundation/spec.md',
+                'docs/operations/sprints/v1/',
+                'docs/operations/blackboard/',
+              ].map((path) => (
+                <div key={path} className="flex items-center gap-3">
+                  <span className="text-emerald-500">✓</span>
+                  <span className="text-zinc-300">{path}</span>
+                </div>
+              ))}
+              <p className="text-zinc-600 text-[11px] pt-2 border-t border-zinc-800 mt-3">
+                Then run <span className="text-zinc-400">/preflight v1</span> to validate before your first sprint.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Commands reference */}
         <section className="space-y-5">
           <h2 className="text-lg font-semibold text-zinc-100">Sprint commands</h2>
-          <div className="rounded-xl bg-zinc-900 border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+          <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden divide-y divide-zinc-800/60">
+
+            <div className="px-5 py-2 bg-zinc-800/40">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Setup — run once</span>
+            </div>
             {[
-              { cmd: '/sprint init',     desc: 'Foundation gate + project scaffold. Run once.' },
-              { cmd: '/prd v1',          desc: 'Plan a sprint — interactive, produces tasks.md' },
-              { cmd: '/dev v1',          desc: 'Implement tasks with TDD + Playwright screenshots' },
-              { cmd: '/preflight v1',    desc: 'Pre-sprint health check — go/no-go verdict' },
-              { cmd: '/scorecard v1',    desc: 'Audit quality layers defined in your config' },
-              { cmd: '/post',            desc: 'Post to the blackboard — finding, blocker, decision' },
-              { cmd: '/checkpoint',      desc: 'Save agent session state to blackboard' },
-              { cmd: '/resume',          desc: 'Restore context after a break or crash' },
-              { cmd: '/walkthrough v1',  desc: 'Generate sprint review narrative' },
+              { cmd: '/sprint init',  desc: 'Foundation gate + project scaffold' },
             ].map(({ cmd, desc }) => (
               <div key={cmd} className="flex items-center gap-4 px-5 py-3">
-                <code className="text-xs font-mono text-emerald-400 w-40 shrink-0">{cmd}</code>
+                <code className="text-xs font-mono text-emerald-400 w-44 shrink-0">{cmd}</code>
                 <span className="text-xs text-zinc-400">{desc}</span>
               </div>
             ))}
+
+            <div className="px-5 py-2 bg-zinc-800/40">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Sprint — repeat each version</span>
+            </div>
+            {[
+              { cmd: '/preflight v1',   desc: 'Pre-sprint health check — go/no-go verdict' },
+              { cmd: '/prd v1',         desc: 'Plan the sprint — interactive, produces tasks.md' },
+              { cmd: '/dev v1',         desc: 'Implement tasks with TDD + Playwright screenshots' },
+              { cmd: '/scorecard v1',   desc: 'Audit quality layers defined in your config' },
+              { cmd: '/walkthrough v1', desc: 'Generate sprint review narrative' },
+            ].map(({ cmd, desc }) => (
+              <div key={cmd} className="flex items-center gap-4 px-5 py-3">
+                <code className="text-xs font-mono text-emerald-400 w-44 shrink-0">{cmd}</code>
+                <span className="text-xs text-zinc-400">{desc}</span>
+              </div>
+            ))}
+
+            <div className="px-5 py-2 bg-zinc-800/40">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Blackboard — anytime</span>
+            </div>
+            {[
+              { cmd: '/post',       desc: 'Post a finding, blocker, or decision to the board' },
+              { cmd: '/checkpoint', desc: 'Save agent session state to the blackboard' },
+              { cmd: '/resume',     desc: 'Restore context after a break or crash' },
+            ].map(({ cmd, desc }) => (
+              <div key={cmd} className="flex items-center gap-4 px-5 py-3">
+                <code className="text-xs font-mono text-emerald-400 w-44 shrink-0">{cmd}</code>
+                <span className="text-xs text-zinc-400">{desc}</span>
+              </div>
+            ))}
+
           </div>
         </section>
 
         {/* CTA */}
-        <section className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-8 py-8 text-center space-y-4">
-          <p className="text-zinc-300 text-sm">Ready to sprint?</p>
-          <div className="flex flex-col items-center gap-3">
-            <code className="text-emerald-400 font-mono text-base bg-zinc-900/80 px-5 py-2.5 rounded-lg border border-zinc-800">
-              /sprint init
-            </code>
-            <p className="text-zinc-600 text-xs">Run this in your Claude Code terminal</p>
-          </div>
-          <div className="pt-2">
-            <Link
-              href="/v1"
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
-            >
-              Or open the dashboard →
-            </Link>
+        <section className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-8 py-8 space-y-5">
+          <p className="text-zinc-300 text-sm font-semibold">Ready? Here&apos;s the sequence.</p>
+          <div className="space-y-3">
+            {[
+              { n: '1', code: '/sprint init',                         note: 'in Claude Code — foundation gate + scaffold' },
+              { n: '2', code: 'npx kapi-sprints dashboard',           note: 'in a separate terminal — opens the dashboard' },
+              { n: '3', code: '/preflight v1',                        note: 'back in Claude Code — validate before building' },
+              { n: '4', code: '/prd v1',                              note: 'plan your first sprint' },
+            ].map(({ n, code, note }) => (
+              <div key={n} className="flex items-start gap-4">
+                <span className="text-[10px] font-bold text-emerald-700 font-mono mt-2 shrink-0 w-4">{n}.</span>
+                <div>
+                  <code className="text-sm text-emerald-400 font-mono bg-zinc-900/80 px-3 py-1.5 rounded-lg border border-zinc-800 block">
+                    {code}
+                  </code>
+                  <p className="text-[11px] text-zinc-600 mt-1.5 font-mono">{note}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
