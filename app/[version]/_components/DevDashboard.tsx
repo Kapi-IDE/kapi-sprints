@@ -1270,8 +1270,8 @@ export function DevDashboard({
       {/* Title bar */}
       <div className="h-9 shrink-0 flex items-center px-4 gap-3 border-b border-zinc-800/80 bg-zinc-950 select-none">
         <div className="flex items-center gap-2">
-          <Image src="/kapi_logo.png" alt={PROJECT.name} width={16} height={16} className="object-contain opacity-80" />
-          <span className="text-xs font-medium text-zinc-400">{PROJECT.name}</span>
+          <Image src="/kapi_logo.png" alt="Kapi Sprints" width={16} height={16} className="object-contain opacity-80" />
+          <span className="text-xs font-medium text-zinc-400">Kapi Sprints</span>
         </div>
         <span className="text-zinc-800">/</span>
         <span className="text-xs font-mono text-zinc-300">{version}</span>

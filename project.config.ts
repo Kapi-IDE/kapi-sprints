@@ -2,8 +2,8 @@
 // Edit this file to brand the dashboard for your project.
 
 export const PROJECT = {
-  /** Full project name shown in the sidebar and title bar */
-  name: 'Kapi Sprints',
+  /** Your project name — shown in the sidebar header */
+  name: 'My Project',
 
   /** 2-letter initials (fallback when logo image is not used) */
   short: 'ks',
