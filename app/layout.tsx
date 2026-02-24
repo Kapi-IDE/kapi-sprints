@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: `${PROJECT.name} · Sprint Dashboard`,
   description: PROJECT.description,
-  icons: { icon: '/favicon.png' },
+  icons: { icon: '/kapi_logo.png' },
 }
 
 export default function RootLayout({

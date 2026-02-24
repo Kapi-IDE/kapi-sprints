@@ -987,7 +987,7 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
       <div className="px-3 py-3.5 border-b border-zinc-800/60">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
-            <Image src="/logo-white.png" alt={PROJECT.name} width={32} height={32} className="object-contain" />
+            <Image src="/kapi_logo.png" alt={PROJECT.name} width={32} height={32} className="object-contain" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-zinc-100 truncate">{PROJECT.name}</p>
@@ -1270,7 +1270,7 @@ export function DevDashboard({
       {/* Title bar */}
       <div className="h-9 shrink-0 flex items-center px-4 gap-3 border-b border-zinc-800/80 bg-zinc-950 select-none">
         <div className="flex items-center gap-2">
-          <Image src="/logo-white.png" alt={PROJECT.name} width={16} height={16} className="object-contain opacity-80" />
+          <Image src="/kapi_logo.png" alt={PROJECT.name} width={16} height={16} className="object-contain opacity-80" />
           <span className="text-xs font-medium text-zinc-400">{PROJECT.name}</span>
         </div>
         <span className="text-zinc-800">/</span>
