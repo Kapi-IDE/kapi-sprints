@@ -1,9 +1,13 @@
 # Kapi Sprints
 
-> **The coordination system for AI-native development teams.**
+> **Multi-agent coordination for Claude Code human-agent teams.**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+
+Run multiple Claude Code terminals simultaneously — each as a specialist agent (PM, Dev, Test) — coordinated through a shared filesystem blackboard. Every agent reads the board, posts findings, and signals status. Humans stay in the loop on the decisions that matter.
+
+![Kapi Sprints Dashboard](kapi-sprints-dashboard-walkthrough.gif)
 
 ---
 
@@ -140,10 +144,6 @@ Review rate
 Every human decision — approve, reject, edit — is a labeled training example. Over time, the team's review burden drops. Agents improve. Autonomy is earned, not assumed.
 
 → **[Read the full vision](docs/guides/vision.md)**
-
----
-
-![Kapi Sprints Dashboard](kapi-sprints-dashboard-walkthrough.gif)
 
 ---
 
