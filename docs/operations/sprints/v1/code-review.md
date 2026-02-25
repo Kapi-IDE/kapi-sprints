@@ -4,7 +4,7 @@
 
 ## Summary
 
-Sprint v1 ships four skill files and updates to the demo data. The skills are intentionally thin — readable and forkable are more important than exhaustive. Two findings worth addressing in v2.
+Sprint v1 ships four skill files, comprehensive demo data, a story-driven README, and two educational guides. The skills are intentionally thin — readable and forkable. Two findings for v2.
 
 ## Per-File Review
 
@@ -20,23 +20,39 @@ Agent init step is the key addition over a naive implementation. Posting `availa
 
 The TDD cycle is appropriately strict: implement → build check → mark done → commit. One commit per task keeps the git log readable.
 
-Finding: the skill doesn't handle the case where `tasks.md` has no unchecked tasks (sprint already done). Should print a clear message rather than silently searching.
+Finding: the skill doesn't handle the case where `tasks.md` has no unchecked tasks. Should print a clear message rather than silently searching.
 
 ### `.claude/skills/test/SKILL.md` ✅
 
-Correct approach: sequential, stops on first failure. The board.md Activity write is important — gives humans visibility into QA results without opening a terminal.
+Sequential, stops on first failure. The board.md Activity write gives humans visibility into QA results without opening a terminal.
 
-Finding: `git push origin dev` assumes the remote is named `origin` and the branch is `dev`. Should check `git remote -v` first or document the assumption clearly for OSS users who may have different setups.
+Finding: `git push origin dev` assumes the remote is named `origin` and the branch is `dev`. Should document this assumption for OSS users who may have different setups.
 
 ### `.claude/skills/post/SKILL.md` ✅
 
-Clean and fast — the "parse, write, confirm" framing is right. Signal type table is clear. The `available` and `handoff` types added here go beyond the kapi-platform version, which is the right evolution.
+Clean signal protocol. Type table is clear. The `available` and `handoff` types go beyond basic blackboard writes — they're the seed of the HITL signal framework documented in `docs/guides/hitl-evaluation.md`.
 
-### Demo data files ✅
+### Demo data (v1/*.md, entries/, board.md) ✅
 
-`preflight.md`, `review.md`, `code-review.md`, entries — all now describe kapi-sprints v1, not a hypothetical auth app. The self-hosting story is coherent end-to-end.
+All files now describe kapi-sprints. The self-hosting story is coherent end to end. Entry file timestamps match frontmatter. Board.md sections are accurate.
+
+### README.md ✅
+
+Story-driven, not a feature list. Correctly mentions 4 shipped skills (not aspirational 12). Links to getkapi.com. Quick Start is 4 commands. Blackboard Pattern section educates without overselling.
+
+### NOTICE ✅
+
+Standard Apache 2.0 attribution. "Originally created by Kapi AI (https://getkapi.com)" — persists in all derivatives.
+
+### `docs/guides/blackboard-pattern.md` ✅
+
+Self-contained explainer. Traces from Hearsay-II to kapi-sprints. Practical examples with board.md format. Shareable standalone.
+
+### `docs/guides/backwards-build.md` ✅
+
+Methodology guide using v1 as the worked example. Foundation Gate concept explained clearly. Good contrast with vibe coding.
 
 ## Findings for v2
 
-1. `/dev` should handle "no unchecked tasks" gracefully — print "Sprint $ARGUMENTS is complete. Run /test." instead of searching indefinitely
-2. `/test` should document or check the `origin`/`dev` assumption for OSS portability
+1. `/dev` should handle "no unchecked tasks" gracefully — print "Sprint complete. Run /test." instead of searching indefinitely
+2. `/test` should document the `origin`/`dev` remote/branch assumption for OSS portability

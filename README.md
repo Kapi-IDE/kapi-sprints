@@ -1,201 +1,273 @@
-# Kapi Sprints — Dev Dashboard
+# Kapi Sprints
 
-> **A sprint dashboard for Claude Code teams.**
-> Built around Backwards Build and Blackboard coordination patterns.
+> **The coordination system for AI-native development teams.**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
 
 ---
 
-## What is this?
+## The Vision
 
-Kapi Sprints is an open-source, file-based sprint dashboard that lives alongside your code. It reads plain Markdown files from `docs/operations/` and renders them as an IDE-like interface with:
+Most teams are bolting AI onto how they already work. They add a copilot here, an agent there. Six months later the agents are ignored or causing problems — confidently wrong, silently drifting, reviewed so obsessively that humans are doing more work than before.
 
-- **Blackboard** — shared coordination space for humans and AI agents (blockers, decisions, findings, directives)
-- **Sprint stages** — Plan → Build → QA → Review → Done with a 3-hour countdown timer
-- **Task tracking** — Checkbox tasks organized into blocks, persisted back to `tasks.md`
-- **Team view** — AI agent status + human activity parsed from blackboard entries
-- **Stream** — filterable timeline of all decisions, findings, milestones, and blockers
-- **Backlog** — inbox of ideas that can be promoted to blockers
+**The models aren't the problem. The coordination is.**
 
-No database. No SaaS. Everything is a `.md` file in your repo.
+We're building toward something different: teams where AI agents announce availability, post findings, signal when stuck, and earn more autonomy as they prove reliable — all on a shared blackboard that every agent and human reads. Where humans review the 10% that genuinely needs human judgment, not 100% out of anxiety. Where context survives session boundaries and agents pick up exactly where they left off.
+
+This is what an AI-native team looks like:
+
+```
+                    HUMAN PM
+                       │
+            ┌──────────┼──────────┐
+            │          │          │
+         reads       reviews    approves
+         board       ~10% of    deploys
+                     responses
+                        │
+         ┌──────────────┼──────────────────────┐
+         │              │                      │
+    PM AGENT      DEV AGENT(S)          TEST AGENT
+    ─────────     ─────────────         ──────────
+    /prd scope    /dev tasks            /test QA gate
+    posts PRD     announces available   posts findings
+    updates board  signals stuck        pushes to staging
+    asks human     commits per-task     updates board
+    for decisions  reads board
+         │              │                      │
+         └──────────────┼──────────────────────┘
+                        │
+                   BLACKBOARD
+                   ──────────
+                   board.md + entries/
+                   agents read and write
+                   dashboard renders live
+```
+
+kapi-sprints is the open-source infrastructure that makes this possible. Not a SaaS. Not an abstraction layer. A coordination system you run in your own repo, against your own files, in your own terminals.
 
 ---
 
-## Design Philosophy
+## The Problem We're Solving
 
-### Backwards Build
+AI coding assistants are powerful but chaotic at scale:
 
-Every sprint starts from the desired end state, not the first task. Ask *"What does done look like?"* then work backwards. Every intermediate state is deployable.
+- **They forget everything between sessions.** Start a new terminal and your agent has no idea what happened yesterday.
+- **They can't coordinate.** Run 3 terminals on the same codebase and they step on each other.
+- **There's no structure for trust.** Agents act autonomously from day one — with the same review rate whether they've been reliable for 6 months or started 5 minutes ago.
+- **It's all vibes.** No scorecards, no preflight checks, no signals, no audit trail. Prompt and pray.
 
-### Blackboard
+The result: teams that should be shipping at 10x are actually shipping at 1x, spending the difference on rework, context recovery, and keeping tabs on what each agent is doing.
 
-Inspired by blackboard systems in multi-agent AI. The `board.md` file is the single source of truth for sprint state — all agents and humans post findings, decisions, and status here. The UI reads it on every page load.
+---
 
-### Claude Code Native
+## The Three Systems
 
-Designed to be used with [Claude Code](https://claude.ai/claude-code) slash commands:
-- `/prd v2` — plan a sprint interactively, produces `tasks.md`
-- `/dev v2` — implement tasks with TDD + Playwright screenshots
-- `/test v2` — run the QA gate
-- `/post` — post to the blackboard without leaving your terminal
-- `/walkthrough v2` — generate a sprint review narrative
+Getting to AI-native requires three things working together:
+
+### 1. Blackboard — Shared State
+
+Inspired by Hearsay-II (1980) and BB1 (1985): a shared knowledge store where multiple specialist agents contribute findings, read each other's state, and coordinate toward a common goal. No central orchestrator. No message passing. Just a shared surface.
+
+```
+Claude Code terminals          Markdown files              Dashboard
+┌──────────────┐
+│ Terminal 1   │──writes──▶  docs/operations/
+│  /dev v1     │             ├── blackboard/
+├──────────────┤             │   ├── board.md      ◀──reads──  localhost:3000
+│ Terminal 2   │──writes──▶  │   └── entries/
+│  /test v1    │             ├── sprints/v1/
+├──────────────┤             │   ├── tasks.md      ◀──reads──  Sprint progress
+│ Terminal 3   │──writes──▶  │   └── review.md     ◀──reads──  Review narrative
+│  /prd v2     │             └── status.md
+└──────────────┘
+```
+
+Agents speak to each other through typed signals — not chat, not tickets:
+
+| Signal | Meaning |
+|--------|---------|
+| `available` | Agent initialized, ready for work |
+| `finding` | Discovered something that changes direction |
+| `decision` | Resolved an open question |
+| `blocker` | Cannot proceed — needs human |
+| `stuck` | Degraded but working — may need help |
+| `handoff` | Passing ownership to next agent |
+| `queue` | Idea to capture before it's lost |
+| `idle` | Work complete, stepping back |
+
+### 2. Sprint Workflow — Structured Cadence
+
+A health-check → plan → build → QA → review cycle where each phase is a Claude Code skill. Context is never lost between sessions. Every sprint produces a complete paper trail.
+
+```
+/resume    → "Where was my head?" (context recovery after time away)
+/preflight → Go/no-go: git, build, architecture drift, UX
+/scorecard → Honest health percentages — no optimism, just reality
+/prd       → Scope negotiation. PRD + tasks written. Board updated.
+/dev       → Pick task → TDD → commit → repeat. Board updated.
+/test      → Build + types + lint + code review → push to staging
+/walkthrough → Per-task narrative of what was built and why
+/checkpoint → End of day. Intent captured for tomorrow's agents.
+```
+
+### 3. HITL Protocol — Earned Autonomy
+
+Not a veto button. A trust protocol. Based on Sheridan's 10-level autonomy model (1978), agents should move along the control spectrum as they earn trust:
+
+```
+Level 4: Agent proposes, human decides        ← /prd scope negotiation
+Level 5: Agent executes, human can veto first ← approval gate
+Level 6: Agent executes, posts to board       ← blackboard signals
+Level 7: Agent acts, human reads board        ← autonomous with audit trail
+```
+
+Agents earn more autonomy over time as they demonstrate reliability:
+
+```
+Review rate
+  100% │▓▓▓▓▓▓▓▓   ← New agent (Day 1)
+       │        ▓▓▓▓▓
+   75% │             ▓▓▓▓
+       │                 ▓▓▓
+   25% │                    ▓▓▓▓▓▓▓▓▓▓▓▓
+    5% │─────────────────────────────────▷ baseline
+       └──────────────────────────────────
+        Day 1    Week 2    Month 1   Month 6
+```
+
+Every human decision — approve, reject, edit — is a labeled training example. Over time, the team's review burden drops. Agents improve. Autonomy is earned, not assumed.
+
+→ **[Read the full vision](docs/guides/vision.md)**
+
+---
+
+![Kapi Sprints Dashboard](kapi-sprints-dashboard-walkthrough.gif)
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Clone
-git clone https://github.com/Kapi-IDE/kapi-sprints.git
+git clone https://github.com/kapihq/kapi-sprints.git
 cd kapi-sprints
-
-# 2. Install
 npm install
-
-# 3. Configure your project
-# Edit project.config.ts — change name, short initials, description
-
-# 4. Start dev server
 npm run dev
-# → http://localhost:3000 (redirects to /v1)
+# → http://localhost:3000
 ```
+
+Open the dashboard. You'll see Sprint v1 — the sprint that built kapi-sprints itself.
 
 ---
 
-## File Structure
+## What's Inside
+
+### Claude Code Skills (`.claude/skills/`)
+
+| Skill | What it does |
+|-------|-------------|
+| `/prd v1` | Plan a sprint interactively — reads backlog + board, brainstorms scope, writes `prd.md` + `tasks.md` |
+| `/dev v1` | Implement tasks with TDD — posts `available` to team sidebar, picks next task, commits per task |
+| `/test v1` | QA gate — build + type check + lint. Stops on first failure. Pushes to staging. |
+| `/post` | Post to the blackboard — `finding`, `decision`, `blocker`, `available`, `handoff`, `queue` |
+
+### Dashboard
+
+| View | What you see |
+|------|-------------|
+| **Overview** | Spec status, sprint velocity, QA quality, blockers, decisions, findings, queue |
+| **Build** | Task blocks with checkboxes — click to toggle, persists to `tasks.md` |
+| **QA** | Test results and code review output |
+| **Review** | Sprint walkthrough narrative |
+| **Stream** | Filterable timeline of all blackboard entries |
+| **Docs** | Markdown + Mermaid rendering of any file in `docs/` |
+
+### File Structure
 
 ```
 docs/operations/
 ├── blackboard/
-│   ├── board.md          ← Edit this to update the blackboard
-│   └── entries/          ← One .md file per finding/decision/milestone
+│   ├── board.md            ← The blackboard — all agents and humans post here
+│   └── entries/            ← One .md per decision/finding/milestone
 ├── sprints/
-│   ├── v1/
-│   │   ├── tasks.md      ← Task list (checkboxes persist on click)
-│   │   ├── prd.md        ← Sprint goals and acceptance criteria
-│   │   ├── preflight.md  ← Pre-sprint health check output
-│   │   ├── code-review.md ← QA gate output
-│   │   └── review.md     ← Sprint walkthrough narrative
-│   └── v2/               ← Empty dir = "upcoming" sprint
-├── backlog.md            ← Inbox of unscheduled ideas
-├── scorecard.md          ← Platform health percentages
-└── status.md             ← What's safe to demo, known gaps, history
+│   └── v1/
+│       ├── tasks.md        ← Task list (checkboxes persist on click)
+│       ├── prd.md          ← Sprint goals and acceptance criteria
+│       ├── preflight.md    ← Pre-sprint health check
+│       ├── code-review.md  ← QA review output
+│       └── review.md       ← Sprint walkthrough narrative
+├── backlog.md              ← Unscheduled ideas
+├── scorecard.md            ← Platform health grades
+└── status.md               ← What works, what doesn't, sprint history
 ```
 
 ---
 
-## Blackboard Format
+## Guides
 
-`docs/operations/blackboard/board.md` uses these section headers:
-
-```markdown
-## Active Blockers
-## Open Decisions
-## Directives
-## Findings
-## Agent Status
-## Activity
-## Resolved
-```
-
-Items are bullet points. The UI parses them and renders live status indicators.
-
-**Entry files** (`entries/*.md`) use frontmatter:
-
-```markdown
----
-type: finding | decision | milestone | blocker | queued | steer
-role: Dev | PM | Test | Human:YourName
-timestamp: jan 15 10am
----
-
-# Title here
-
-Body content here.
-```
-
----
-
-## Task Format
-
-Tasks in `tasks.md` follow this format:
-
-```markdown
-## Block A: Name
-
-- [ ] **T01: Task title** (S)
-  What: What this task does
-  Files: path/to/file.ts, another/file.ts
-  Logic:
-    pseudocode or key implementation details
-  Test: How to verify this works
-  Depends: T00 (optional)
-```
-
-Sizes: `S` = ~15 min, `M` = ~30 min. Checkboxes toggle via the UI and persist back to `tasks.md`.
+| Guide | What it covers |
+|-------|---------------|
+| [Vision](docs/guides/vision.md) | The full vision — blackboard theory, sprint workflow, HITL autonomy ramps, target state |
+| [Blackboard Pattern](docs/guides/blackboard-pattern.md) | Hearsay-II and BB1 — the 1980s AI research behind this coordination model |
+| [Backwards Build](docs/guides/backwards-build.md) | Start from done. Every intermediate state is deployable. |
+| [Principles](docs/guides/principles.md) | Durable engineering and product beliefs that shape all decisions |
 
 ---
 
 ## Configuration
 
-Edit `project.config.ts`:
+Edit `project.config.ts` to brand the dashboard for your project:
 
 ```typescript
 export const PROJECT = {
-  name: 'My Project',     // Shown in sidebar and title bar
-  short: 'mp',            // 2-letter initials for the logo badge
-  description: '...',     // One-line description
-  repo: 'https://...',    // Your repository URL
+  name: 'My Project',
+  short: 'mp',
+  description: 'One-line description',
+  repo: 'https://github.com/you/your-repo',
 }
 ```
 
 ---
 
-## API Routes
+## Roadmap
 
-Three write endpoints (all write to local `.md` files):
+- [ ] Real-time file watching (SSE — dashboard updates within 1-2 seconds of any `.md` change)
+- [ ] CLI packaging (`npx kapi-sprints dashboard`)
+- [ ] Claude Code plugin marketplace distribution
+- [ ] `/resume` — session recovery: "where was my head?"
+- [ ] `/checkpoint` — session debrief + board pruning
+- [ ] `/sprint init` — Foundation Gate as a Claude Code command
+- [ ] `/scorecard` — config-based quality layer auditing
+- [ ] Per-category competence tracking (autonomy ramp implementation)
+- [ ] Shadow mode infrastructure (earn autonomy before acting autonomously)
+- [ ] Active learning loop (human decisions → labeled dataset → prompt optimization)
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/sprint/[version]/toggle` | POST | Toggle a task checkbox in `tasks.md` |
-| `/api/blackboard/resolve` | POST | Move a decision from Open to Resolved |
-| `/api/backlog/promote` | POST | Promote a backlog item to Active Blocker |
+---
+
+## Built by Kapi
+
+This is how we build [Kapi](https://getkapi.com) — an AI agent platform where blueprints ship all 8 layers: UI, Graph, Integrations, Knowledge, Memory, HITL, Evals, and Observability.
+
+The blackboard pattern and HITL protocol you see in kapi-sprints are the same coordination model that powers Kapi's multi-agent orchestration. Teams who use kapi-sprints are learning the methodology firsthand — and building exactly the kind of AI-native workflow that makes Kapi's enterprise features make sense.
 
 ---
 
 ## Contributing
 
-Contributions welcome. Apache 2.0 licensed.
+Contributions welcome. Read [docs/guides/principles.md](docs/guides/principles.md) first — the design philosophy shapes all decisions.
 
 ```bash
-# Fork → clone → branch
 git checkout -b feat/your-feature
-
-# Make changes, test locally
-npm run dev
+npm run dev    # test locally
 npm run build  # must pass
-
 # Submit PR
 ```
-
-Please read `docs/guides/principles.md` before contributing — the design philosophy shapes all decisions.
-
----
-
-## Roadmap
-
-- [ ] Claude Code plugin integration (read terminal status live)
-- [ ] Configurable sprint duration
-- [ ] Dark/light theme toggle
-- [ ] Multiple project support
-- [ ] Webhook to post blackboard entries from external tools
 
 ---
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE)
+Apache 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE)
 
-Built by [Kapi IDE](https://github.com/Kapi-IDE) · Inspired by [Claude Code](https://claude.ai/claude-code)
+Built by [Kapi AI](https://getkapi.com)

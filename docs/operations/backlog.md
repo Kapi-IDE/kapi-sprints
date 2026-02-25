@@ -7,24 +7,35 @@ Use `/post queue [idea]` from Claude Code to add items here.
 
 ## Inbox
 
-<!-- Items added via /post queue or promoted from decisions -->
-[ ] Implement `/sprint init` — scans for docs/foundation/{vision,market,spec}.md, generates each conversationally if missing, validates for completeness (thin = ⚠️), then scaffolds sprint structure
-[ ] Build `/sprint` command dispatcher — routes `init`, `prd`, `preflight`, `post`, `review` subcommands
-[x] **Structured signal protocol for humans + agents** — `/post` skill created in `.claude/skills/post/`. Humans and agents both use `/post [type] [message]` from terminal. CLAUDE.md updated to ban raw markdown writes to board.md.
-[x] **Agent init protocol** — `/dev` skill now writes `available` entry on startup, populating Team sidebar
-[ ] **Extend `/post` signal types** — add `stuck` (→ Active Blockers), `offer` (→ Activity), `notice` (→ Findings) to complete the HITL Signal framework. See docs/guides/hitl-evaluation.md.
-[ ] `/resume` skill — start-of-session briefing (reads board + git log, answers "where was I?")
-[ ] `/checkpoint` skill — end-of-session debrief, prunes board.md, archives old entries
-[ ] Signal type rendering — `available`/`stuck`/`handoff` entries visually distinct in Team sidebar
-[ ] Self-host Geist font for privacy/performance
-[ ] Staging deploy for kapi-sprints itself (currently runs locally only)
+[ ] **Real-time file watching** — replace page-load reads with chokidar + SSE so dashboard updates within 1-2 seconds of any `.md` change
+[ ] **CLI packaging** — `npx kapi-sprints dashboard` launches on port 3838, discovers `kapi-sprints.config.md` in caller's project
+[ ] **Plugin marketplace structure** — `plugin/` directory with `plugin.json` + `marketplace.json`, installable via `claude plugin marketplace add kapihq/kapi-sprints`
+[ ] **Generalize skills into `plugin/skills/`** — copy from `.claude/skills/`, strip kapi-platform-specific references
+[ ] **`/resume` skill** — start-of-session briefing (reads board + git log, answers "where was I?")
+[ ] **`/checkpoint` skill** — end-of-session debrief, prunes board.md, archives old entries
+[ ] **`/sprint init` with Foundation Gate** — scans for docs/foundation/{vision,market,spec}.md, generates each conversationally if missing, validates for completeness
+[ ] **`/scorecard` with config-based layers** — reads layers from `kapi-sprints.config.md` instead of hardcoded values
+[ ] **Extend `/post` signal types** — add `stuck` (→ Active Blockers), `offer` (→ Activity), `notice` (→ Findings) to complete the HITL Signal framework
+[ ] **Signal type rendering** — `available`/`stuck`/`handoff` entries visually distinct in Team sidebar
+[ ] **Align design docs with reality** — architecture.md and dashboard.md describe a monorepo that doesn't exist; add Current State / Target State sections
+[ ] **`/dev` edge case** — handle "no unchecked tasks" gracefully (print "Sprint complete. Run /test.")
+[ ] **`/test` portability** — document or detect remote name and branch assumptions for OSS users
+[ ] **Self-host Geist font** for privacy/performance
+[ ] **Staging deploy** for kapi-sprints itself (currently runs locally only)
+[ ] **Configurable sprint duration** — currently hardcoded 3 hours
 
 ---
 
 ## Done
 
-[x] Core dashboard UI — sprint tasks, blackboard, stage nav, overview panel — v1
-[x] `/post` skill — structured blackboard writes from terminal — v1
+[x] Dashboard UI — sprint tasks, blackboard, stage nav, overview panel — v1
 [x] `/prd` skill — interactive sprint planner — v1
 [x] `/dev` skill — TDD task runner with agent init — v1
 [x] `/test` skill — QA gate: build + types + lint + push — v1
+[x] `/post` skill — structured blackboard writes from terminal — v1
+[x] Agent init protocol — `/dev` writes `available` entry on startup — v1
+[x] Self-hosting demo data — v1 describes itself — v1
+[x] README — story-driven, links to Kapi AI — v1
+[x] NOTICE — Apache 2.0 attribution — v1
+[x] Blackboard Pattern guide — v1
+[x] Backwards Build guide — v1
