@@ -58,6 +58,25 @@ export interface StreamEntry {
   body: string
 }
 
+export interface AuthorStats {
+  name: string
+  added: number
+  removed: number
+  commits: number
+}
+
+export interface SprintStats {
+  // From docs/operations/sprints/{version}/cost.md (written by agent via /cost)
+  costUsd:      string | null
+  apiTime:      string | null
+  wallTime:     string | null
+  tokensIn:     number | null
+  tokensOut:    number | null
+  cacheRead:    number | null
+  // From git log
+  authors:      AuthorStats[]
+}
+
 // ─── Git helpers ──────────────────────────────────────────────────────────────
 
 function git(cmd: string): string {
@@ -404,6 +423,62 @@ export default async function VersionPage({
     }
   } catch {}
 
+  // ─── Sprint stats (cost.md + git log) ───────────────────────────────────────
+
+  const sprintStats: SprintStats = {
+    costUsd: null, apiTime: null, wallTime: null,
+    tokensIn: null, tokensOut: null, cacheRead: null,
+    authors: [],
+  }
+
+  // cost.md — written by agent at end of sprint via /cost
+  try {
+    const costMd = await fs.readFile(
+      path.join(opsDir, 'sprints', version, 'cost.md'), 'utf-8'
+    )
+    const m = (pat: RegExp) => costMd.match(pat)?.[1]?.trim() ?? null
+    sprintStats.costUsd  = m(/total cost[:\s]+(\$[\d.]+)/i)
+    sprintStats.apiTime  = m(/api\s+time[:\s]+([^\n]+)/i) ?? m(/duration.*api[)\s:]+([^\n]+)/i)
+    sprintStats.wallTime = m(/wall\s+time[:\s]+([^\n]+)/i) ?? m(/duration.*wall[)\s:]+([^\n]+)/i)
+    const tokIn  = m(/tokens?\s+in[:\s]+([\d,]+)/i)
+    const tokOut = m(/tokens?\s+out[:\s]+([\d,]+)/i)
+    const cache  = m(/cache\s+read[:\s]+([\d,]+)/i)
+    if (tokIn)  sprintStats.tokensIn  = parseInt(tokIn.replace(/,/g, ''), 10)
+    if (tokOut) sprintStats.tokensOut = parseInt(tokOut.replace(/,/g, ''), 10)
+    if (cache)  sprintStats.cacheRead = parseInt(cache.replace(/,/g, ''), 10)
+  } catch {}
+
+  // git log — per-author stats (last 200 commits)
+  try {
+    const raw = execSync(
+      'git log --no-merges --format="AUTHOR:%aN" --numstat -n 200',
+      { cwd: process.cwd(), stdio: ['pipe', 'pipe', 'ignore'] }
+    ).toString()
+
+    const authorMap = new Map<string, AuthorStats>()
+    let current = ''
+    for (const line of raw.split('\n')) {
+      if (line.startsWith('AUTHOR:')) {
+        current = line.slice(7).trim()
+        if (!authorMap.has(current)) {
+          authorMap.set(current, { name: current, added: 0, removed: 0, commits: 0 })
+        }
+        authorMap.get(current)!.commits++
+      } else {
+        const parts = line.split('\t')
+        if (parts.length >= 2 && current) {
+          const a = parseInt(parts[0], 10)
+          const r = parseInt(parts[1], 10)
+          if (!isNaN(a)) authorMap.get(current)!.added   += a
+          if (!isNaN(r)) authorMap.get(current)!.removed += r
+        }
+      }
+    }
+    sprintStats.authors = [...authorMap.values()]
+      .filter(a => a.commits > 0)
+      .sort((a, b) => (b.added + b.removed) - (a.added + a.removed))
+  } catch {}
+
   return (
     <DevDashboard
       specStatus={specStatus}
@@ -427,6 +502,7 @@ export default async function VersionPage({
       historyHtml={historyHtml}
       streamEntries={streamEntries}
       inboxItems={inboxItems}
+      sprintStats={sprintStats}
     />
   )
 }

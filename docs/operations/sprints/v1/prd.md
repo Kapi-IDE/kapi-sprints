@@ -1,50 +1,57 @@
-# Sprint v1 — Foundation
+# Sprint v1 — Core Skills + Self-Hosted Demo
 
-*Backwards Build sprint: start from the deployed, working product and work backwards to the first task.*
+**Goal**: Ship kapi-sprints as a self-demonstrating OSS tool. A PM or dev team can clone it, run `/prd v2`, and immediately have a working sprint workflow — powered by the same skills and blackboard the tool renders.
 
-## Goal
+**Sprint window**: 1 day
 
-Ship a working foundation: project scaffolding, CI/CD pipeline, user authentication, and a basic dashboard. Every task should result in a deployable, passing-tests state.
+---
+
+## Why This Sprint
+
+The dashboard UI is built. The file parsing works. The blackboard renders. But the tool has no workflow skills — the `/prd`, `/dev`, and `/test` commands that make the sprint loop actually run are missing. Without them, kapi-sprints is a viewer, not a workflow tool.
+
+This sprint ships the three core skills and replaces the placeholder demo data with real development sprint artifacts — so the tool demonstrates itself.
+
+---
+
+## Scope
+
+### In
+
+- `/prd` skill — interactive sprint planner (brainstorm → scope → tasks.md + prd.md)
+- `/dev` skill — TDD task runner (reads board → agent init → pick task → TDD cycle → commit)
+- `/test` skill — QA gate (build + lint + push to dev)
+- Replace placeholder demo data with real sprint artifacts (this sprint)
+- Update `status.md` and `scorecard.md` to reflect actual product state
+
+### Out
+
+- `/resume` skill (v2 — needs more board history to be useful)
+- `/checkpoint` skill (v2)
+- Signal routing / escalation (v2 — HITL research backlog)
+- Auth, payments, database (not applicable — kapi-sprints has no backend)
+
+---
 
 ## Acceptance Criteria
 
-- [ ] Repository has CI/CD that auto-deploys to staging on push to `dev`
-- [ ] Users can sign up, log in, and log out with email + password
-- [ ] Authenticated users see a dashboard page (can be a stub)
-- [ ] All lint and type checks pass
-- [ ] Test coverage for auth flows
-
-## Out of Scope
-
-- Third-party OAuth (v2)
-- Email verification (v2)
-- Settings page design (v2)
+- [ ] `/prd v2` runs in a fresh kapi-sprints clone and produces `sprints/v2/prd.md` + `sprints/v2/tasks.md`
+- [ ] `/dev v2` picks the first task, posts `available` to board.md, and begins TDD loop
+- [ ] `/test v2` runs build + lint and reports pass/fail
+- [ ] Dashboard at `localhost:3000/v1` shows real sprint data (this sprint's tasks + blackboard)
+- [ ] `status.md` accurately describes what's built and what's not
 
 ---
 
-## Task Breakdown
+## Risks
 
-| Block | Name | Time |
-|-------|------|------|
-| A: Setup | Project scaffolding + CI | 45 min |
-| B: Auth | User authentication | 90 min |
-| C: Deploy | Testing + staging deploy | 45 min |
-
-**Total: ~180 min (3 hours)**
+- Skills reference kapi-platform patterns — need to strip Kapi-specific context (blueprints, 8-layer arch) and replace with kapi-sprints context
+- Keep skills small and readable — kapi-sprints is OSS, skills should be forkable
 
 ---
 
-## Backwards Build Approach
+## Decisions
 
-Start from the end state and work backwards:
-
-**Done state**: Users can log in and see a dashboard → staging deploy is green
-
-**Work backwards**:
-1. Dashboard page exists and is protected by auth middleware ← Block B
-2. Auth flows work (signup, login, session, logout) ← Block B
-3. Database has users table ← Block B
-4. CI/CD pipeline deploys on push ← Block A
-5. Project is initialized with correct stack ← Block A
-
-**TDD rule**: Write the test before the implementation. No task is done until the test passes.
+- Skills live in `.claude/skills/` — same pattern as kapi-platform
+- `/dev` agent init: first step writes `/post available` so agent appears in Team sidebar
+- No Playwright in `/dev` for v1 — skill file creation doesn't need browser tests

@@ -1,10 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import type { ParsedBlock, LayerScore, BlackboardData, StreamEntry } from '../page'
 
 export interface FoundationDoc {
   label: string
-  path: string
+  path: string   // e.g. "docs/foundation/vision.md" — becomes "/{path}" for doc viewer
   status: 'ok' | 'thin' | 'missing'
 }
 
@@ -12,10 +13,12 @@ export interface SpecStatus {
   docs: FoundationDoc[]
 }
 
+const BOARD_URL = '/docs/operations/blackboard/board.md'
+
 // ─── SVG ring ─────────────────────────────────────────────────────────────────
 
 function Ring({
-  pct, size = 56, stroke = 5, color, trackColor = '#27272a', children,
+  pct, size = 64, stroke = 6, color, trackColor = '#27272a', children,
 }: {
   pct: number; size?: number; stroke?: number; color: string; trackColor?: string
   children?: React.ReactNode
@@ -38,12 +41,18 @@ function Ring({
   )
 }
 
-// ─── Compact metric card ──────────────────────────────────────────────────────
+// ─── Metric card shell ────────────────────────────────────────────────────────
 
-function MetricCard({ title, children }: { title: string; children: React.ReactNode }) {
+function MetricCard({ title, href, children }: { title: string; href: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 flex flex-col gap-3 min-w-0">
-      <p className="text-[9px] uppercase tracking-[0.14em] text-zinc-600 font-mono">{title}</p>
+    <div className="rounded-xl bg-zinc-900 border border-zinc-800 px-5 py-4 flex flex-col gap-3 min-w-0">
+      <Link
+        href={href}
+        className="flex items-center gap-1.5 group/title"
+      >
+        <p className="text-[11px] uppercase tracking-[0.13em] text-zinc-500 font-semibold flex-1 group-hover/title:text-zinc-300 transition-colors">{title}</p>
+        <span className="text-[10px] font-mono text-zinc-700 group-hover/title:text-zinc-400 transition-colors">→</span>
+      </Link>
       {children}
     </div>
   )
@@ -58,27 +67,31 @@ function SpecCard({ specStatus }: { specStatus: SpecStatus }) {
   const color = pct === 1 ? '#10b981' : pct >= 0.5 ? '#f59e0b' : '#ef4444'
 
   const dotCls: Record<string, string> = {
-    ok: 'bg-emerald-400', thin: 'bg-amber-400', missing: 'bg-zinc-700',
+    ok: 'bg-emerald-400', thin: 'bg-amber-400', missing: 'bg-zinc-600',
   }
   const txtCls: Record<string, string> = {
     ok: 'text-emerald-400', thin: 'text-amber-400', missing: 'text-zinc-600',
   }
 
   return (
-    <MetricCard title="Spec Status">
-      <div className="flex items-center gap-3">
-        <Ring pct={pct} size={52} stroke={5} color={color}>
-          <span className="text-sm font-bold text-zinc-100 leading-none">{done}/{total}</span>
+    <MetricCard title="Spec Status" href="/docs/foundation">
+      <div className="flex items-center gap-4">
+        <Ring pct={pct} size={64} stroke={6} color={color}>
+          <span className="text-base font-bold text-zinc-100 leading-none">{done}/{total}</span>
         </Ring>
-        <div className="flex-1 space-y-1.5 min-w-0">
+        <div className="flex-1 space-y-2 min-w-0">
           {specStatus.docs.map(doc => (
-            <div key={doc.path} className="flex items-center gap-1.5 min-w-0">
+            <Link
+              key={doc.path}
+              href={`/${doc.path}`}
+              className="flex items-center gap-2 min-w-0 hover:bg-zinc-800/40 rounded px-1 -mx-1 transition-colors"
+            >
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls[doc.status]}`} />
-              <span className="text-[10px] text-zinc-400 flex-1 truncate">{doc.label}</span>
-              <span className={`text-[9px] font-mono shrink-0 ${txtCls[doc.status]}`}>
+              <span className="text-xs text-zinc-300 flex-1 truncate">{doc.label}</span>
+              <span className={`text-[11px] font-mono shrink-0 ${txtCls[doc.status]}`}>
                 {doc.status === 'ok' ? 'Ready' : doc.status === 'thin' ? 'Thin' : '—'}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -88,7 +101,7 @@ function SpecCard({ specStatus }: { specStatus: SpecStatus }) {
 
 // ─── 2. Sprint Velocity ───────────────────────────────────────────────────────
 
-function VelocityCard({ blocks }: { blocks: ParsedBlock[] }) {
+function VelocityCard({ blocks, version }: { blocks: ParsedBlock[]; version: string }) {
   const allTasks = blocks.flatMap(b => b.tasks)
   const total    = allTasks.length
   const done     = allTasks.filter(t => t.checked).length
@@ -97,23 +110,23 @@ function VelocityCard({ blocks }: { blocks: ParsedBlock[] }) {
   const color    = pct === 1 ? '#10b981' : '#6366f1'
 
   return (
-    <MetricCard title="Sprint Velocity">
-      <div className="flex items-center gap-3">
-        <Ring pct={pct} size={52} stroke={5} color={color} trackColor="#1e1e2a">
-          <span className="text-sm font-bold text-zinc-100 leading-none">{pctInt}%</span>
+    <MetricCard title="Sprint Velocity" href={`/docs/operations/sprints/${version}/tasks.md`}>
+      <div className="flex items-center gap-4">
+        <Ring pct={pct} size={64} stroke={6} color={color} trackColor="#1e1e2a">
+          <span className="text-base font-bold text-zinc-100 leading-none">{pctInt}%</span>
         </Ring>
-        <div className="flex-1 space-y-1.5 min-w-0">
+        <div className="flex-1 space-y-2 min-w-0">
           {total === 0 ? (
-            <p className="text-[10px] text-zinc-600">Run /prd v1</p>
+            <p className="text-xs text-zinc-500">Run /prd {version}</p>
           ) : (
             <>
               {[['Done', done], ['Left', total - done], ['Total', total]].map(([l, v]) => (
                 <div key={String(l)} className="flex justify-between">
-                  <span className="text-[10px] text-zinc-500">{l}</span>
-                  <span className="text-[10px] font-mono tabular-nums text-zinc-200">{v}</span>
+                  <span className="text-xs text-zinc-500">{l}</span>
+                  <span className="text-xs font-mono tabular-nums text-zinc-200 font-semibold">{v}</span>
                 </div>
               ))}
-              <div className="w-full h-[2px] rounded-full bg-zinc-800 overflow-hidden">
+              <div className="w-full h-[3px] rounded-full bg-zinc-800 overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${pctInt}%`, background: color }} />
               </div>
             </>
@@ -133,28 +146,28 @@ function QACard({ layerScores }: { layerScores: LayerScore[] }) {
   const top4     = [...layerScores].sort((a, b) => a.baseline - b.baseline).slice(0, 4)
 
   return (
-    <MetricCard title="QA Quality">
+    <MetricCard title="QA Quality" href="/docs/operations/scorecard.md">
       {layerScores.length === 0 ? (
-        <div className="flex items-center gap-3">
-          <Ring pct={0} size={52} stroke={5} color="#3f3f46">
-            <span className="text-sm font-bold text-zinc-600">—</span>
+        <div className="flex items-center gap-4">
+          <Ring pct={0} size={64} stroke={6} color="#3f3f46">
+            <span className="text-base font-bold text-zinc-600">—</span>
           </Ring>
-          <p className="text-[10px] text-zinc-600">Run /scorecard v1</p>
+          <p className="text-xs text-zinc-500">Run /scorecard</p>
         </div>
       ) : (
-        <div className="flex items-center gap-3">
-          <Ring pct={avg / 100} size={52} stroke={5} color={barColor(avg)}>
-            <span className="text-sm font-bold text-zinc-100 leading-none">{avg}</span>
+        <div className="flex items-center gap-4">
+          <Ring pct={avg / 100} size={64} stroke={6} color={barColor(avg)}>
+            <span className="text-base font-bold text-zinc-100 leading-none">{avg}</span>
           </Ring>
-          <div className="flex-1 space-y-1.5 min-w-0">
+          <div className="flex-1 space-y-2 min-w-0">
             {top4.map(layer => (
-              <div key={layer.name} className="space-y-[2px]">
+              <div key={layer.name} className="space-y-[3px]">
                 <div className="flex justify-between">
-                  <span className="text-[10px] text-zinc-500 truncate">{layer.name}</span>
-                  <span className="text-[9px] font-mono tabular-nums ml-1 shrink-0"
+                  <span className="text-xs text-zinc-400 truncate">{layer.name}</span>
+                  <span className="text-[11px] font-mono tabular-nums ml-1 shrink-0 font-semibold"
                     style={{ color: barColor(layer.baseline) }}>{layer.baseline}%</span>
                 </div>
-                <div className="h-[2px] rounded-full bg-zinc-800 overflow-hidden">
+                <div className="h-[3px] rounded-full bg-zinc-800 overflow-hidden">
                   <div className="h-full rounded-full"
                     style={{ width: `${layer.baseline}%`, background: barColor(layer.baseline) }} />
                 </div>
@@ -175,36 +188,36 @@ function BlockersCard({ blackboard }: { blackboard: BlackboardData }) {
   const fg    = clear ? '#10b981' : '#ef4444'
 
   return (
-    <MetricCard title="Blockers">
-      <div className="flex items-center gap-3">
-        <div className="relative shrink-0" style={{ width: 52, height: 52 }}>
-          <svg width={52} height={52}>
-            <circle cx={26} cy={26} r={24} fill="none" stroke={clear ? '#10b98118' : '#ef444418'} strokeWidth={1} />
-            <circle cx={26} cy={26} r={18} fill={clear ? '#10b9810a' : '#ef44440a'}
-              stroke={clear ? '#10b98128' : '#ef444428'} strokeWidth={1} />
+    <MetricCard title="Blockers" href={BOARD_URL}>
+      <div className="flex items-center gap-4">
+        <div className="relative shrink-0" style={{ width: 64, height: 64 }}>
+          <svg width={64} height={64}>
+            <circle cx={32} cy={32} r={30} fill="none" stroke={clear ? '#10b98118' : '#ef444418'} strokeWidth={1.5} />
+            <circle cx={32} cy={32} r={22} fill={clear ? '#10b9810a' : '#ef44440a'}
+              stroke={clear ? '#10b98130' : '#ef444430'} strokeWidth={1.5} />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-bold leading-none tabular-nums" style={{ color: fg }}>{count}</span>
+            <span className="text-2xl font-bold leading-none tabular-nums" style={{ color: fg }}>{count}</span>
           </div>
         </div>
         <div className="flex-1 min-w-0">
           {clear ? (
             <div>
-              <p className="text-[10px] text-emerald-400">All clear</p>
-              <p className="text-[9px] text-zinc-600 mt-0.5">No active blockers</p>
+              <p className="text-sm font-semibold text-emerald-400">All clear</p>
+              <p className="text-xs text-zinc-500 mt-0.5">No active blockers</p>
             </div>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {blackboard.blockers.slice(0, 3).map((b, i) => (
-                <li key={i} className="flex gap-1 items-start">
-                  <span className="text-red-500 text-[8px] mt-px shrink-0">▲</span>
-                  <span className="text-[10px] text-zinc-400 leading-snug line-clamp-1">
+                <li key={i} className="flex gap-1.5 items-start">
+                  <span className="text-red-400 text-[10px] mt-0.5 shrink-0">▲</span>
+                  <span className="text-xs text-zinc-300 leading-snug line-clamp-1">
                     {b.replace(/^\*\*[^*]+\*\*\s*—\s*/, '')}
                   </span>
                 </li>
               ))}
               {blackboard.blockers.length > 3 && (
-                <li className="text-[9px] text-zinc-600 font-mono">+{blackboard.blockers.length - 3} more</li>
+                <li className="text-xs text-zinc-500 font-mono">+{blackboard.blockers.length - 3} more</li>
               )}
             </ul>
           )}
@@ -219,21 +232,38 @@ function BlockersCard({ blackboard }: { blackboard: BlackboardData }) {
 interface SectionConfig {
   title: string
   dot: string
+  badge: string
+  href: string
   emptyText: string
+  hint: string
 }
 
 const SECTION_CFG: Record<string, SectionConfig> = {
-  decisions: { title: 'Open Decisions', dot: 'bg-amber-400',  emptyText: 'No open decisions' },
-  queue:     { title: 'Queue',          dot: 'bg-violet-400', emptyText: 'Queue is empty'    },
-  findings:  { title: 'Findings',       dot: 'bg-sky-400',    emptyText: 'No findings yet'   },
-  directives:{ title: 'Directives',     dot: 'bg-violet-400', emptyText: 'No directives'     },
-}
-
-const BADGE_CFG: Record<string, string> = {
-  decisions:  'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  queue:      'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  findings:   'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  directives: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  decisions:  {
+    title: 'Open Decisions', dot: 'bg-amber-400',
+    badge: 'bg-amber-500/10 text-amber-300 border-amber-500/25',
+    href: BOARD_URL, emptyText: 'No open decisions',
+    hint: '- **Label** — question  in ## Open Decisions',
+  },
+  queue:      {
+    title: 'Queue', dot: 'bg-violet-400',
+    badge: 'bg-violet-500/10 text-violet-300 border-violet-500/25',
+    href: '/docs/operations/blackboard/entries',
+    emptyText: 'Queue is empty',
+    hint: 'entries/YYYY-MM-DD-HHMM-role-queued.md',
+  },
+  findings:   {
+    title: 'Findings', dot: 'bg-sky-400',
+    badge: 'bg-sky-500/10 text-sky-300 border-sky-500/25',
+    href: BOARD_URL, emptyText: 'No findings yet',
+    hint: '- **Label** — text  in ## Findings',
+  },
+  directives: {
+    title: 'Directives', dot: 'bg-violet-400',
+    badge: 'bg-violet-500/10 text-violet-300 border-violet-500/25',
+    href: BOARD_URL, emptyText: 'No directives',
+    hint: '- **Label** — instruction  in ## Directives',
+  },
 }
 
 function BlackboardSection({ type, items }: { type: string; items: string[] }) {
@@ -241,27 +271,35 @@ function BlackboardSection({ type, items }: { type: string; items: string[] }) {
   return (
     <div className="rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col min-h-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/50 shrink-0">
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
-        <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-mono flex-1">{cfg.title}</span>
+      <Link
+        href={cfg.href}
+        className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-800/60 shrink-0 hover:bg-zinc-800/30 transition-colors group/hdr"
+      >
+        <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
+        <span className="text-sm font-semibold text-zinc-200 flex-1 group-hover/hdr:text-zinc-100">{cfg.title}</span>
         {items.length > 0 && (
-          <span className={`text-[9px] font-mono px-1.5 py-px rounded border ${BADGE_CFG[type]}`}>
+          <span className={`text-xs font-mono px-2 py-0.5 rounded-md border font-semibold ${cfg.badge}`}>
             {items.length}
           </span>
         )}
-      </div>
+        <span className="text-[10px] font-mono text-zinc-700 group-hover/hdr:text-zinc-400 transition-colors ml-1">→</span>
+      </Link>
       {/* Items */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
         {items.length === 0 ? (
-          <p className="text-[11px] text-zinc-700 py-2">{cfg.emptyText}</p>
+          <p className="text-sm text-zinc-600 py-1">{cfg.emptyText}</p>
         ) : (
           items.map((item, i) => (
-            <div key={i} className="flex items-start gap-2 py-1 border-b border-zinc-800/30 last:border-0">
-              <span className={`w-1 h-1 rounded-full shrink-0 mt-1.5 ${cfg.dot} opacity-60`} />
-              <p className="text-[11px] text-zinc-400 leading-relaxed">{item.replace(/^\*\*[^*]+\*\*\s*—?\s*/, '')}</p>
+            <div key={i} className="flex items-start gap-2.5 pb-2.5 border-b border-zinc-800/40 last:border-0 last:pb-0">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${cfg.dot} opacity-70`} />
+              <p className="text-sm text-zinc-300 leading-relaxed">{item.replace(/^\*\*[^*]+\*\*\s*—?\s*/, '')}</p>
             </div>
           ))
         )}
+      </div>
+      {/* Write hint */}
+      <div className="shrink-0 px-4 py-2 border-t border-zinc-800/40">
+        <p className="text-[10px] font-mono text-zinc-700 truncate">{cfg.hint}</p>
       </div>
     </div>
   )
@@ -270,6 +308,7 @@ function BlackboardSection({ type, items }: { type: string; items: string[] }) {
 // ─── OverviewPanel ────────────────────────────────────────────────────────────
 
 interface Props {
+  version: string
   specStatus: SpecStatus
   blocks: ParsedBlock[]
   layerScores: LayerScore[]
@@ -277,16 +316,16 @@ interface Props {
   streamEntries: StreamEntry[]
 }
 
-export function OverviewPanel({ specStatus, blocks, layerScores, blackboard, streamEntries }: Props) {
-  const queueItems = streamEntries.filter(e => e.type === 'queued').map(e => e.title ?? e.raw ?? '')
+export function OverviewPanel({ version, specStatus, blocks, layerScores, blackboard, streamEntries }: Props) {
+  const queueItems = streamEntries.filter(e => e.type === 'queued').map(e => e.title ?? '')
 
   return (
     <div className="h-full flex flex-col gap-4 p-5 overflow-hidden">
 
-      {/* Row 1 — compact metric cards */}
+      {/* Row 1 — metric cards */}
       <div className="grid grid-cols-4 gap-4 shrink-0">
         <SpecCard     specStatus={specStatus} />
-        <VelocityCard blocks={blocks} />
+        <VelocityCard blocks={blocks} version={version} />
         <QACard       layerScores={layerScores} />
         <BlockersCard blackboard={blackboard} />
       </div>

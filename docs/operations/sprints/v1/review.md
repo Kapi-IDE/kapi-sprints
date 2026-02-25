@@ -1,60 +1,51 @@
-# Sprint v1 Review — Foundation
+# Sprint v1 Review — Core Skills + Self-Hosted Demo
 
-*Generated: jan 16 7pm · Duration: 2h 45min · Tasks: 9/9*
+*Generated: feb 24 · Duration: 1 day · Tasks: 5/5*
 
 ## What We Built
 
-Sprint v1 shipped the complete foundation for the project. Starting from zero, we now have:
+Sprint v1 shipped the workflow engine that makes kapi-sprints usable as a team tool — not just a dashboard viewer. Starting from a working UI with no skills, we now have:
 
-- A deployable Next.js 15 app with TypeScript and Tailwind CSS
-- A CI/CD pipeline that auto-deploys to staging on every `dev` push
-- Full user authentication (signup, login, logout) with httpOnly session cookies
-- Protected routes via Next.js middleware
-- Integration tests for all auth flows
-- A live staging environment
+- `/prd` — interactive sprint planner that reads the backlog and board, brainstorms with you, and writes `prd.md` + `tasks.md`
+- `/dev` — TDD task runner that reads the board, posts `available` to the team sidebar, picks the next task, implements, and commits
+- `/test` — QA gate: build + type check + lint + push to dev
+- `/post` — structured blackboard writes for humans and agents (classified by type, written to entry files + board.md sections)
+- Real sprint data — v1 now tells the story of building kapi-sprints itself, not a placeholder auth app
 
 ## Task-by-Task Narrative
 
-### T01 — Repository initialization (15 min)
+### T01 — `/prd` skill (30 min)
 
-`npx create-next-app@latest` gave us the scaffold. Stripped the default page content, configured Tailwind v4, and added `eslint-config-next`. First commit: `feat: initialize project`.
+Created `.claude/skills/prd/SKILL.md`. The skill reads `board.md` (queued items), `backlog.md` (candidates), `status.md` (current state), and recent git log before starting. Process: summarize → suggest goal → brainstorm → propose scope → get agreement → write files. Output: `sprints/$ARGUMENTS/prd.md` and `tasks.md`. Updates board.md Agent Status and Activity on completion.
 
-### T02 — CI/CD pipeline (25 min)
+The key design decision: keep it interactive, not a form. The PM role should push back on scope and surface queued items — a mechanical template would miss that.
 
-Two GitHub Actions workflows. `deploy-staging.yml` triggers on push to `dev`, SSHes into the staging server, pulls, runs `npm ci && npm run build`, and restarts PM2. `deploy-prod.yml` is manual-only and requires typing "production" in the confirmation field to prevent accidents.
+### T02 — `/dev` skill (30 min)
 
-### T03 — Pre-commit hooks (10 min)
+Created `.claude/skills/dev/SKILL.md`. Startup sequence: read board for blockers → read tasks.md → post `available` entry (creates an entry file + writes to `## Agent Status` in board.md, which populates the Team sidebar). Then strict per-task cycle: implement → build check → mark `[x]` → commit. On blocker: note in tasks.md + post to board.
 
-Husky `pre-commit` runs `lint-staged` over `.ts` and `.tsx` files. Any ESLint error or TypeScript error blocks the commit. Takes ~3 seconds. Worth it to keep the main branch clean.
+The agent init step (`/post available`) was the core design goal — agents should appear in the Team sidebar the moment they start work, not just when they post findings.
 
-### T04 — Database + Prisma schema (20 min)
+### T03 — `/test` skill (15 min)
 
-Prisma schema with a `User` model: `id` (cuid), `email` (unique), `passwordHash`, `createdAt`. Migration ran cleanly. Seeded one test user for local dev.
+Created `.claude/skills/test/SKILL.md`. Sequential: `npm run build` → `npx tsc --noEmit` → `npm run lint` → `git push origin dev`. Stops on first failure. Writes a one-line summary to `## Activity` in board.md — pass or fail with timestamp.
 
-### T05 — Auth API routes (45 min)
+Kept intentionally simple: no Playwright for v1, no per-file analysis. The QA gate's job is to protect the dev branch, not to replace code review.
 
-The most time-intensive task. Signup validates email format, checks for duplicates, hashes with `bcrypt(12)`, inserts, and sets a signed session cookie. Login verifies the hash, reuses the same cookie-setting logic. The session value is a signed JWT (7-day expiry) — the signing key is in `SESSION_SECRET` env var. One finding noted in code review: error messages should be normalized to prevent user enumeration.
+### T04 — Replace placeholder sprint data (20 min)
 
-### T06 — Middleware (15 min)
+Rewrote `preflight.md`, `review.md` (this file), `code-review.md`, and all three entry files in `entries/`. Also cleaned `board.md` (removed auth XSS finding, auth activity) and `backlog.md` (removed auth rate limiting, OAuth, email verification — wrong product entirely).
 
-`middleware.ts` reads the session cookie on every request to `/dashboard/*`. If missing or invalid, redirects to `/login?next=<original-url>` so the user lands back after login. The matcher config was the tricky part — had to explicitly exclude `/api/auth/*` from protection.
+The self-hosting principle: the demo data for a sprint dashboard should be the sprint that built the dashboard. A new user cloning the repo should read v1 and understand exactly how kapi-sprints was built using kapi-sprints.
 
-### T07 — Logout (10 min)
+### T05 — Update status.md and scorecard.md (15 min)
 
-One API route: POST clears the cookie by setting `maxAge: 0`. The logout button in the nav calls this then redirects client-side to `/login`.
-
-### T08 — Integration tests (30 min)
-
-Three Playwright scenarios: (1) sign up → land on dashboard, (2) login with wrong password → error message, (3) login → logout → try to access dashboard → redirect to login. All pass.
-
-### T09 — Staging deploy (15 min)
-
-Pushed to `dev`, watched the Actions workflow, confirmed green. Smoke-tested the staging URL manually. Auth flow works end-to-end in the browser.
+Rewrote both files to describe kapi-sprints accurately. Scorecard now grades dashboard, parsing, skills, blackboard, right panel, doc viewer, onboarding, and OSS quality. Status.md lists what's actually safe to demo and what's genuinely missing.
 
 ## What's Next (v2)
 
-The code review surfaced two security items to fix before production:
-1. Rate limiting on `/api/auth/login`
-2. Normalized error messages (no user enumeration)
-
-Beyond security, v2 will add the core product features: main dashboard UI, settings page, and the first user-facing feature.
+From the backlog:
+- `/resume` — start-of-session briefing (reads board + git log, answers "where was I?")
+- `/checkpoint` — end-of-session debrief, prunes board.md
+- Signal type rendering — `available`/`stuck`/`handoff` entries visually distinct in sidebar
+- Agent init protocol baked into `/dev` and `/prd` as a standard first step

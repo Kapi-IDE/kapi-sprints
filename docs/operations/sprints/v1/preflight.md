@@ -1,28 +1,29 @@
 # Preflight: Sprint v1
 
-*Run: jan 15 9am · Verdict: GO ✓*
+*Run: feb 24 · Verdict: GO ✓*
 
 ## Git Status
 
 - Branch: `dev` (clean, 0 uncommitted)
 - No merge conflicts
-- No stale branches
 
 ## Build
 
-- `npm run build` → ✅ success (Next.js 15, 0 errors)
+- `npm run build` → ✅ success (Next.js 15, 9 routes, 0 errors)
 - `npm run lint` → ✅ 0 warnings
+- `npx tsc --noEmit` → ✅ 0 type errors
 
 ## Environment
 
 - Node 22 LTS ✅
-- All required env vars present in `.env.local` ✅
-- Database connection healthy ✅
+- No database required — kapi-sprints is file-based only ✅
+- All `.md` files in `docs/operations/` readable ✅
 
 ## Readiness
 
-- tasks.md has 9 tasks across 3 blocks ✅
-- Acceptance criteria defined ✅
+- tasks.md has 5 tasks across 2 blocks ✅
+- prd.md goal defined ✅
 - No open blockers ✅
+- `.claude/skills/` directory exists ✅
 
 **Verdict: GO — start Block A immediately**

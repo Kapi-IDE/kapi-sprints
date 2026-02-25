@@ -35,23 +35,26 @@ project.config.ts              ← Project name, initials, description
 
 ## Blackboard Posting
 
-Always post to the blackboard for:
-- Findings that change direction
-- Architectural decisions
-- Blockers
-- Agent status updates
+**Never write raw markdown to `board.md` directly.** Use `/post` from the terminal — Claude Code handles classification, entry file creation, and board.md update.
 
-Format for `board.md` entries:
-```
-- **Short title** — details → `entries/filename.md`
+```bash
+/post finding "parser ignores entries with no title"
+/post blocker "need PM sign-off on queue layout"
+/post decision "SQLite vs Postgres for local dev?"
+/post available "Dev ready for v2 T03"
+/post handoff "Test — Dev done with T07, needs e2e coverage"
+/post queue "add stale signal detection to right panel"
 ```
 
-Entry files (`entries/*.md`) frontmatter:
+This applies to **both humans and agents**. Agents invoke `/post` programmatically during `/dev`, `/test`, etc. Humans type it in the terminal. Same protocol, same format, same entry files.
+
+Entry files land in `docs/operations/blackboard/entries/` with frontmatter:
 ```yaml
 ---
-type: finding | decision | milestone | blocker | queued | steer
-role: Dev | PM | Test | Human:Name
-timestamp: jan 15 10am
+type: finding | decision | blocker | steer | available | handoff | queued
+role: Human:Balaji | Dev | PM | Test
+timestamp: feb 24 10am
+title: Short title
 ---
 ```
 

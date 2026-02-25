@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import type {
-  ParsedBlock, ParsedTask, BlackboardData, GitStatus, LayerScore, StreamEntry,
+  ParsedBlock, ParsedTask, BlackboardData, GitStatus, LayerScore, StreamEntry, SprintStats,
 } from '../page'
 import { RightPanel } from './RightPanel'
 import { OverviewPanel } from './OverviewPanel'
@@ -38,6 +38,7 @@ interface Props {
   historyHtml: string
   streamEntries: StreamEntry[]
   inboxItems: string[]
+  sprintStats: SprintStats
 }
 
 type SprintStage  = 'plan' | 'build' | 'qa' | 'review' | 'done'
@@ -50,6 +51,7 @@ interface ParsedAgent {
   context: string
   detail: string
   raw: string
+  href: string   // link to their latest activity file
 }
 type ActiveView = { mode: 'stage'; stage: SprintStage } | { mode: 'workspace'; tab: WorkspaceTab }
 
@@ -74,7 +76,7 @@ function defaultStage(
   return 'build'
 }
 
-function parseAgents(terminals: string[]): ParsedAgent[] {
+function parseAgents(terminals: string[], streamEntries: StreamEntry[]): ParsedAgent[] {
   return terminals.map(raw => {
     const nameMatch   = raw.match(/^\*\*(.+?)\*\*/)
     const ctxMatch    = raw.match(/\*\*[^*]+\*\*\s*\(([^)]+)\)/)
@@ -84,7 +86,14 @@ function parseAgents(terminals: string[]): ParsedAgent[] {
     const context = ctxMatch?.[1]   ?? ''
     const status  = (statusMatch?.[1]?.toLowerCase() ?? 'unknown') as ParsedAgent['status']
     const detail  = detailMatch?.[1]?.trim() ?? ''
-    return { type: 'ai', name, status, context, detail, raw }
+    // Link to most recent stream entry by this agent, else fall back to board
+    const latestEntry = streamEntries
+      .filter(e => e.role?.toLowerCase() === name.toLowerCase())
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0]
+    const href = latestEntry
+      ? `/docs/operations/blackboard/entries/${latestEntry.filename}`
+      : '/docs/operations/blackboard/board.md'
+    return { type: 'ai', name, status, context, detail, raw, href }
   })
 }
 
@@ -106,6 +115,7 @@ function parseHumans(streamEntries: StreamEntry[]): ParsedAgent[] {
       context: entry.type ?? '',
       detail: entry.title ?? '',
       raw: role,
+      href: `/docs/operations/blackboard/entries/${entry.filename}`,
     }
   })
 }
@@ -948,10 +958,7 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
 
   const pastSprints   = versions.filter(v => sprintStates[v] === 'active' && v !== currentVersion)
   const futureSprints = versions.filter(v => sprintStates[v] === 'upcoming')
-  const hasBlockers   = blackboard.blockers.length > 0
-  const hasDecisions  = blackboard.decisions.length > 0
-
-  const agents = parseAgents(blackboard.terminals)
+  const agents = parseAgents(blackboard.terminals, streamEntries)
   const humans = parseHumans(streamEntries)
   const allTeam = [...agents, ...humans]
 
@@ -960,8 +967,6 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
     { id: 'adrs',   label: 'ADRs',    badge: streamEntries.filter(e => e.type === 'decision').length || undefined },
     { id: 'status', label: 'Status' },
   ]
-
-  const isBBActive = activeView.mode === 'workspace' && activeView.tab === 'blackboard'
 
   function SprintRow({ v }: { v: string }) {
     const isCurrent  = v === currentVersion && sprintStates[v] === 'active'
@@ -1012,31 +1017,13 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
           <span className="shrink-0 text-[10px]">◈</span>
           <span className="flex-1 font-medium">Overview</span>
         </button>
-      </div>
-
-      {/* Blackboard (pinned) */}
-      <div className="border-b border-zinc-800/40 py-1.5">
-        <button
-          onClick={() => onView({ mode: 'workspace', tab: 'blackboard' })}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
-            isBBActive ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-100'
-          }`}
+        <Link
+          href="/docs"
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100 transition-colors"
         >
-          <span className="relative shrink-0 w-2 h-2">
-            <span className={`absolute inset-0 rounded-full ${hasBlockers ? 'bg-red-400' : hasDecisions ? 'bg-amber-400' : 'bg-emerald-500'}`}/>
-            {(hasBlockers || hasDecisions) && (
-              <span className={`absolute inset-0 rounded-full animate-ping opacity-60 ${hasBlockers ? 'bg-red-400' : 'bg-amber-400'}`}/>
-            )}
-          </span>
-          <span className="flex-1 font-medium">Blackboard</span>
-          {(blackboard.blockers.length > 0 || blackboard.decisions.length > 0) && (
-            <span className={`text-[10px] font-mono px-1.5 py-px rounded ${
-              hasBlockers ? 'bg-red-500/15 text-red-400' : 'bg-amber-500/15 text-amber-400'
-            }`}>
-              {hasBlockers ? `${blackboard.blockers.length} block` : `${blackboard.decisions.length} dec`}
-            </span>
-          )}
-        </button>
+          <span className="shrink-0 text-[10px]">◻</span>
+          <span className="flex-1">Docs</span>
+        </Link>
       </div>
 
       {/* Current sprint */}
@@ -1050,16 +1037,13 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
         <div className="border-b border-zinc-800/40 py-1.5">
           <p className="px-3 pt-1 pb-0.5 text-[9px] text-zinc-600 uppercase tracking-[0.14em]">Team</p>
           {allTeam.map((member, i) => {
-            const isTeamActive = activeView.mode === 'workspace' && activeView.tab === 'agents'
             const isActive = member.status === 'active'
             const isHuman  = member.type === 'human'
             return (
-              <button
+              <Link
                 key={i}
-                onClick={() => onView({ mode: 'workspace', tab: 'agents' })}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors text-left ${
-                  isTeamActive ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-300'
-                }`}
+                href={member.href}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-300 transition-colors"
               >
                 {isHuman ? (
                   <span className="shrink-0 w-3.5 h-3.5 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-[7px] font-bold text-sky-400 font-mono">
@@ -1075,7 +1059,7 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
                 <span className={`text-[9px] font-mono ${isHuman ? 'text-sky-700' : isActive ? 'text-emerald-600' : 'text-zinc-700'}`}>
                   {isHuman ? 'human' : isActive ? 'active' : 'idle'}
                 </span>
-              </button>
+              </Link>
             )
           })}
         </div>
@@ -1149,6 +1133,17 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
           )
         })}
       </div>
+
+      {/* Footer */}
+      <div className="border-t border-zinc-800/60 py-1.5 shrink-0">
+        <Link
+          href="/get-started"
+          className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-900/60 hover:text-zinc-400 transition-colors"
+        >
+          <span className="text-[10px] shrink-0">◎</span>
+          <span className="flex-1">Get Started</span>
+        </Link>
+      </div>
     </aside>
   )
 }
@@ -1204,7 +1199,7 @@ export function DevDashboard({
   specStatus,
   version, versions, sprintState, currentVersion, prevVersion, nextVersion, sprintStates,
   blocks, blackboard, prdHtml, gitStatus, preflightHtml, reviewHtml, codeReviewHtml,
-  layerScores, demoHtml, gapsHtml, historyHtml, streamEntries, inboxItems,
+  layerScores, demoHtml, gapsHtml, historyHtml, streamEntries, inboxItems, sprintStats,
 }: Props) {
   const router = useRouter()
 
@@ -1218,7 +1213,7 @@ export function DevDashboard({
 
   const [activeView, setActiveView] = useState<ActiveView>(() => ({
     mode: 'workspace',
-    tab: 'blackboard',
+    tab: 'overview',
   }))
 
   const [sprintStartTime, setSprintStartTime] = useState<number | null>(null)
@@ -1304,7 +1299,6 @@ export function DevDashboard({
               {gitStatus.uncommittedCount > 0 && <span className="text-amber-700">~{gitStatus.uncommittedCount}</span>}
             </>
           )}
-          <a href="/docs" className="hover:text-zinc-400 transition-colors">docs</a>
           <span>
             <button onClick={() => prevVersion && router.push(`/${prevVersion}`)} disabled={!prevVersion} className="px-1 text-zinc-700 hover:text-zinc-500 disabled:opacity-20">‹</button>
             <button onClick={() => nextVersion && router.push(`/${nextVersion}`)} disabled={!nextVersion} className="px-1 text-zinc-700 hover:text-zinc-500 disabled:opacity-20">›</button>
@@ -1355,6 +1349,7 @@ export function DevDashboard({
             )}
             {activeView.mode === 'workspace' && activeView.tab === 'overview' && (
               <OverviewPanel
+                version={version}
                 specStatus={specStatus}
                 blocks={blocks}
                 layerScores={layerScores}
@@ -1362,12 +1357,9 @@ export function DevDashboard({
                 streamEntries={streamEntries}
               />
             )}
-            {activeView.mode === 'workspace' && activeView.tab === 'blackboard' && (
-              <BlackboardView blackboard={blackboard}/>
-            )}
             {activeView.mode === 'workspace' && activeView.tab === 'agents' && (
               <AgentsView
-                agents={parseAgents(blackboard.terminals)}
+                agents={parseAgents(blackboard.terminals, streamEntries)}
                 humans={parseHumans(streamEntries)}
               />
             )}
@@ -1386,7 +1378,7 @@ export function DevDashboard({
           </div>
         </div>
 
-        {!(activeView.mode === 'workspace' && activeView.tab === 'overview') && <RightPanel/>}
+        {!(activeView.mode === 'workspace' && activeView.tab === 'overview') && <RightPanel sprintStats={sprintStats} />}
       </div>
 
       {/* Status bar */}

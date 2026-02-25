@@ -1,31 +1,32 @@
 # Project Status
 
-*Last updated: jan 16*
+*Last updated: feb 24*
 
 ## What's Safe to Demo Today
 
-- User signup and login flows (staging)
-- Session persistence across page reloads
-- Protected route redirect (visiting /dashboard without auth → /login)
-- CI/CD pipeline (push to dev → auto deploy visible in Actions)
+- Sprint dashboard at `/[version]/` — tasks, stage nav, blackboard, overview panel
+- Blackboard at `board.md` — blockers, decisions, directives, findings, agent status, activity
+- Stream entries in `entries/` — individual posts with frontmatter parsed and rendered
+- Doc viewer at `/docs/[...path]` — markdown + Mermaid diagram rendering
+- Right panel — git stats per author (lines added/removed/commits), cost.md parsing
+- Foundation Gate at `/get-started` — onboarding walkthrough
+- `/post` skill — humans and agents post to blackboard from the terminal
+- `/prd` skill — interactive sprint planner, writes prd.md + tasks.md
+- `/dev` skill — TDD task runner with agent init (posts `available` on startup)
+- `/test` skill — build + type check + lint + push QA gate
 
 ## Known Gaps
 
-- No rate limiting on auth endpoints (brute-force possible)
-- Auth error messages leak user existence
-- No email verification
-- Dashboard is a stub page with no real content
-- No structured logging or error tracking
-- No password reset flow
+- No `/resume` skill — start-of-session briefing (reads board + git log)
+- No `/checkpoint` skill — end-of-session debrief
+- Signal routing — `available`/`stuck`/`handoff` entries parsed but not visually distinct in sidebar
+- Token stats in right panel — need `cost.md` populated via `/cost` command
+- No staging/prod deployment configured for kapi-sprints itself
 
 ## Sprint History
 
-### v1 — Foundation (jan 15-16)
+### v1 — Core Skills (feb 24)
 
-Shipped: project scaffold, CI/CD, user auth (signup/login/logout/middleware), integration tests, staging deploy.
+Shipped: `/prd`, `/dev`, `/test`, `/post` skills. Replaced placeholder demo data with real sprint artifacts. Updated scorecard and status to reflect actual product state.
 
-9/9 tasks · 2h 45min · 0 blockers
-
-### v2 — (upcoming)
-
-Security hardening (rate limiting, error normalization) + core product features.
+5/5 tasks · 1 day · 0 blockers

@@ -1,53 +1,42 @@
 # Code Review: Sprint v1
 
-*Reviewer: AI · Date: jan 16 6pm*
+*Reviewer: AI · Date: feb 24*
 
 ## Summary
 
-Sprint v1 ships a solid foundation. The auth implementation follows best practices with httpOnly cookies and bcrypt. CI/CD is correctly configured. Two findings that should be addressed in v2.
+Sprint v1 ships four skill files and updates to the demo data. The skills are intentionally thin — readable and forkable are more important than exhaustive. Two findings worth addressing in v2.
 
-## Per-Task Review
+## Per-File Review
 
-### T01 — Initialize repository ✅
+### `.claude/skills/prd/SKILL.md` ✅
 
-Correct stack choice. Tailwind v4 configured properly. One note: `geist` font imported from Google Fonts — consider self-hosting for privacy/performance in v2.
+Correct structure. Reads the right files before starting (board, backlog, status, git log). Process is well-sequenced: summarize → suggest → brainstorm → propose → write. Output format is explicit. Board.md update instructions are clear.
 
-### T02 — CI/CD pipeline ✅
+One note: no explicit handling of "what if sprints/$ARGUMENTS/ doesn't exist yet?" — the skill should create the directory. Low priority since `mkdir -p` in the write step handles it implicitly.
 
-Staging auto-deploy on `dev` push works correctly. Production workflow correctly requires manual confirmation. Branch protection rules on `main` are configured. Good.
+### `.claude/skills/dev/SKILL.md` ✅
 
-### T03 — Pre-commit hooks ✅
+Agent init step is the key addition over a naive implementation. Posting `available` before starting work means the human can see who's active in the Team sidebar in real time.
 
-Husky + lint-staged catches type errors before commit. No bypass flags allowed. Good practice.
+The TDD cycle is appropriately strict: implement → build check → mark done → commit. One commit per task keeps the git log readable.
 
-### T04 — Users table ✅
+Finding: the skill doesn't handle the case where `tasks.md` has no unchecked tasks (sprint already done). Should print a clear message rather than silently searching.
 
-Prisma schema is clean. `passwordHash` naming is correct (never `password`). `createdAt` uses `@default(now())`. Migration runs cleanly.
+### `.claude/skills/test/SKILL.md` ✅
 
-### T05 — Auth API routes ⚠️
+Correct approach: sequential, stops on first failure. The board.md Activity write is important — gives humans visibility into QA results without opening a terminal.
 
-Implementation is correct but two findings:
-1. **Rate limiting missing** — signup and login endpoints have no rate limiting. A brute-force attack on /login is trivially easy. Add `express-rate-limit` or middleware-level rate limiting before v2.
-2. **Error messages leak existence** — "user not found" vs "wrong password" lets an attacker enumerate valid emails. Return the same generic error for both cases.
+Finding: `git push origin dev` assumes the remote is named `origin` and the branch is `dev`. Should check `git remote -v` first or document the assumption clearly for OSS users who may have different setups.
 
-### T06 — Middleware ✅
+### `.claude/skills/post/SKILL.md` ✅
 
-Correct use of Next.js middleware for session validation. The matcher config properly protects `/dashboard/*` while leaving `/login` and `/api/auth/*` open.
+Clean and fast — the "parse, write, confirm" framing is right. Signal type table is clear. The `available` and `handoff` types added here go beyond the kapi-platform version, which is the right evolution.
 
-### T07 — Logout ✅
+### Demo data files ✅
 
-Cookie cleared correctly with same attributes as set (httpOnly, SameSite). POST method correct (GET logout is a CSRF vulnerability).
-
-### T08 — Integration tests ✅
-
-3 Playwright scenarios pass. Coverage is adequate for v1. Add happy-path for signup in v2.
-
-### T09 — Staging deploy ✅
-
-Staging URL healthy. Smoke test passes.
+`preflight.md`, `review.md`, `code-review.md`, entries — all now describe kapi-sprints v1, not a hypothetical auth app. The self-hosting story is coherent end-to-end.
 
 ## Findings for v2
 
-1. Add rate limiting to /api/auth/login (5 req/min per IP)
-2. Normalize auth error messages (no user enumeration)
-3. Self-host Geist font
+1. `/dev` should handle "no unchecked tasks" gracefully — print "Sprint $ARGUMENTS is complete. Run /test." instead of searching indefinitely
+2. `/test` should document or check the `origin`/`dev` assumption for OSS portability
