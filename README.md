@@ -55,14 +55,15 @@ kapi-sprints is the open-source infrastructure that makes this possible. Not a S
 
 ## The Problem We're Solving
 
-AI coding assistants are powerful but chaotic at scale:
+![Gatekeeper vs Teammate](hitl-teammate-mindset.png)
 
-- **They forget everything between sessions.** Start a new terminal and your agent has no idea what happened yesterday.
-- **They can't coordinate.** Run 3 terminals on the same codebase and they step on each other.
-- **There's no structure for trust.** Agents act autonomously from day one — with the same review rate whether they've been reliable for 6 months or started 5 minutes ago.
-- **It's all vibes.** No scorecards, no preflight checks, no signals, no audit trail. Prompt and pray.
+Every LLM framework treats human oversight as a gate — approve or reject after the agent finishes. Classical multi-agent research solved the right problem decades ago: humans as **teammates**, not gatekeepers. They steer mid-flight, fill gaps agents can't handle, and teach through interaction so agents earn more autonomy over time.
 
-The result: teams that should be shipping at 10x are actually shipping at 1x, spending the difference on rework, context recovery, and keeping tabs on what each agent is doing.
+![Bainbridge's Irony of Automation](hitl-bainbridge-trap.png)
+
+And there's a deeper trap. The better your agent gets, the worse your human backup becomes. Bainbridge's Irony of Automation (1983): as agents handle routine tasks reliably, humans review less, skills atrophy, and when a novel failure finally hits — the one case that needed a sharp human — nobody's sharp anymore.
+
+kapi-sprints is built around both insights. Humans as teammates on the blackboard. Smart review routing so humans stay practiced on what genuinely needs them.
 
 ---
 
