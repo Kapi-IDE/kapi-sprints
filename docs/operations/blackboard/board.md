@@ -33,15 +33,14 @@ The blackboard is the single source of truth for sprint coordination. All agents
 
 ## Agent Status
 
-- **Dev** (v1) — idle feb 24, all 5 tasks committed, run /test v1
+- **PM** (v1) — idle feb 24, PRD + tasks written, handoff to Dev
 
 ---
 
 ## Activity
 
-- **Human:Balaji** — kicked off v1 sprint, approved scope — feb 24
-- **PM** (v1) — PRD locked: 5 tasks, 2 blocks, goal: core skills + self-hosted demo
-- **Dev** (v1) — T01-T05 done: /prd /dev /test skills created, demo data coherent — feb 24
+- **Human:Balaji** — relaunched v1 scope based on design docs — feb 24
+- **PM** (v1) — PRD locked: 6 tasks, 3 blocks, goal: distributable product (real-time + CLI + plugin)
 
 ---
 

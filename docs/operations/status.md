@@ -25,8 +25,8 @@
 
 ## Sprint History
 
-### v1 — Core Skills (feb 24)
+### v1 — Distributable Product (in progress)
 
-Shipped: `/prd`, `/dev`, `/test`, `/post` skills. Replaced placeholder demo data with real sprint artifacts. Updated scorecard and status to reflect actual product state.
+Goal: real-time file watching (chokidar + SSE), `npx kapi-sprints dashboard` CLI, plugin structure for Claude marketplace.
 
-5/5 tasks · 1 day · 0 blockers
+6 tasks · 0/6 complete
