@@ -11,7 +11,7 @@ import { RightPanel } from './RightPanel'
 import { OverviewPanel } from './OverviewPanel'
 import type { SpecStatus } from './OverviewPanel'
 import { PROJECT } from '@/project.config'
-import { useBlackboard, type BlackboardState } from '@/app/hooks/use-blackboard'
+import { useBlackboard, type BlackboardState, type BlackboardAgent, type BlackboardDirective, type BlackboardLogEntry } from '@/app/hooks/use-blackboard'
 
 /** Convert live blackboard server state → the BlackboardData format the UI expects */
 function liveToBlackboardData(live: BlackboardState): BlackboardData {
@@ -705,20 +705,168 @@ function DoneStage({ version, doneCount, totalTasks, gitStatus }: {
 
 // ─── Workspace: Blackboard ────────────────────────────────────────────────────
 
-function BlackboardView({ blackboard }: { blackboard: BlackboardData }) {
-  const router = useRouter()
+const STATUS_COLORS: Record<string, string> = {
+  active: 'bg-emerald-400',
+  working: 'bg-amber-400',
+  idle: 'bg-zinc-500',
+  done: 'bg-blue-400',
+  stuck: 'bg-red-400',
+}
+
+function LiveAgentCard({ name, agent }: { name: string; agent: BlackboardAgent }) {
+  const statusColor = STATUS_COLORS[agent.status ?? ''] ?? 'bg-zinc-500'
   return (
-    <div className="p-6 space-y-3">
-      {blackboard.lastUpdated && (
-        <p className="text-xs text-zinc-600 italic">Last updated: {blackboard.lastUpdated}</p>
-      )}
-      <BbSection title="Active Blockers" items={blackboard.blockers} color="bg-red-950/15 border-red-500/30" dot="bg-red-400" defaultOpen={blackboard.blockers.length > 0}/>
-      <DecisionsSection items={blackboard.decisions} onResolved={() => router.refresh()}/>
-      <BbSection title="Directives" items={blackboard.directives} color="bg-violet-950/15 border-violet-500/30" dot="bg-violet-400"/>
-      <BbSection title="Findings" items={blackboard.findings} color="bg-sky-950/15 border-sky-500/30" dot="bg-sky-400" defaultOpen={blackboard.findings.length > 0}/>
-      <BbSection title="Agent Status" items={blackboard.terminals} color="bg-zinc-900/40 border-zinc-700/40" defaultOpen={blackboard.terminals.length > 0}/>
-      <BbSection title="Activity" items={blackboard.activity} color="bg-zinc-900/30 border-zinc-800"/>
-      <BbSection title="Resolved" items={blackboard.resolved} color="bg-zinc-900/20 border-zinc-800/50"/>
+    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-zinc-800/40 border border-zinc-700/30">
+      <span className={`w-2 h-2 rounded-full shrink-0 ${statusColor} animate-pulse`}/>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-zinc-100 truncate">{name}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700/60 text-zinc-400 font-medium">{agent.role ?? 'agent'}</span>
+        </div>
+        {agent.model && <p className="text-[11px] text-zinc-500 truncate">{agent.model}</p>}
+      </div>
+      <span className="text-[11px] text-zinc-500 shrink-0">{agent.status ?? 'unknown'}</span>
+    </div>
+  )
+}
+
+function LiveDirectiveCard({ directive }: { directive: BlackboardDirective }) {
+  const isPending = directive.status === 'pending'
+  const isDone = directive.status === 'done'
+  return (
+    <div className={`px-3 py-2.5 rounded-lg border ${
+      isDone ? 'bg-zinc-900/20 border-zinc-800/40 opacity-50' :
+      isPending ? 'bg-violet-950/15 border-violet-500/25' :
+      'bg-amber-950/10 border-amber-500/20'
+    }`}>
+      <div className="flex items-start gap-2">
+        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
+          isDone ? 'bg-zinc-500' : isPending ? 'bg-violet-400' : 'bg-amber-400'
+        }`}/>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-zinc-200">{directive.title ?? directive.text ?? directive.id}</p>
+          <div className="flex items-center gap-2 mt-1">
+            {(directive.assigned_to ?? directive.assignee) && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-400">
+                → {directive.assigned_to ?? directive.assignee}
+              </span>
+            )}
+            <span className="text-[10px] text-zinc-600">{directive.status ?? 'pending'}</span>
+            {directive.posted_at && (
+              <span className="text-[10px] text-zinc-600">{directive.posted_at.slice(11, 19)}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LiveActivityFeed({ log }: { log: BlackboardLogEntry[] }) {
+  const recent = log.slice(-15).reverse()
+  return (
+    <div className="space-y-0.5 max-h-48 overflow-y-auto">
+      {recent.map((entry, i) => (
+        <div key={i} className="flex items-baseline gap-2 px-1 py-0.5">
+          <span className="text-[10px] font-mono text-zinc-600 shrink-0">
+            {entry.ts?.slice(11, 19) ?? '??:??:??'}
+          </span>
+          <span className="text-xs text-zinc-400">{entry.entry}</span>
+        </div>
+      ))}
+      {recent.length === 0 && <p className="text-xs text-zinc-600 px-1">No activity yet</p>}
+    </div>
+  )
+}
+
+function BlackboardView({ blackboard, liveState, connected }: {
+  blackboard: BlackboardData
+  liveState: BlackboardState | null
+  connected: boolean
+}) {
+  const router = useRouter()
+  const agents = liveState?.agents ?? {}
+  const directives = liveState?.directives ?? []
+  const log = liveState?.log ?? []
+  const agentCount = Object.keys(agents).length
+  const pendingDirectives = directives.filter(d => d.status !== 'done')
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Live MAS Coordination */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`}/>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Live Coordination
+          </h3>
+          {connected && (
+            <span className="text-[10px] text-zinc-600">
+              {agentCount} agent{agentCount !== 1 ? 's' : ''} · {pendingDirectives.length} active directive{pendingDirectives.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        {!connected ? (
+          <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/20 px-4 py-6 text-center">
+            <p className="text-sm text-zinc-500">Blackboard server not connected</p>
+            <p className="text-xs text-zinc-600 mt-1">Start Claude Code with the blackboard channel to see live agents</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Agents */}
+            {agentCount > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider px-1">Agents</p>
+                <div className="grid gap-1.5">
+                  {Object.entries(agents).map(([name, agent]) => (
+                    <LiveAgentCard key={name} name={name} agent={agent}/>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Directives */}
+            {directives.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider px-1">Directives</p>
+                <div className="grid gap-1.5">
+                  {directives.map((d) => (
+                    <LiveDirectiveCard key={d.id} directive={d}/>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Activity */}
+            {log.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider px-1">Activity</p>
+                <div className="rounded-lg bg-zinc-900/30 border border-zinc-800/40 p-2">
+                  <LiveActivityFeed log={log}/>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Sprint Board (file-based) */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Sprint Board</h3>
+          {blackboard.lastUpdated && (
+            <span className="text-[10px] text-zinc-600">updated {blackboard.lastUpdated}</span>
+          )}
+        </div>
+        <BbSection title="Active Blockers" items={blackboard.blockers} color="bg-red-950/15 border-red-500/30" dot="bg-red-400" defaultOpen={blackboard.blockers.length > 0}/>
+        <DecisionsSection items={blackboard.decisions} onResolved={() => router.refresh()}/>
+        <BbSection title="Directives" items={blackboard.directives} color="bg-violet-950/15 border-violet-500/30" dot="bg-violet-400"/>
+        <BbSection title="Findings" items={blackboard.findings} color="bg-sky-950/15 border-sky-500/30" dot="bg-sky-400" defaultOpen={blackboard.findings.length > 0}/>
+        <BbSection title="Agent Status" items={blackboard.terminals} color="bg-zinc-900/40 border-zinc-700/40" defaultOpen={blackboard.terminals.length > 0}/>
+        <BbSection title="Activity" items={blackboard.activity} color="bg-zinc-900/30 border-zinc-800"/>
+        <BbSection title="Resolved" items={blackboard.resolved} color="bg-zinc-900/20 border-zinc-800/50"/>
+      </div>
     </div>
   )
 }
@@ -990,7 +1138,9 @@ function LeftSidebar({ version, versions, sprintStates, currentVersion, blackboa
   const humans = parseHumans(streamEntries)
   const allTeam = [...agents, ...humans]
 
+  const blockerCount = blackboard.blockers.length || undefined
   const historyItems: { id: WorkspaceTab; label: string; badge?: number }[] = [
+    { id: 'blackboard', label: 'Blackboard', badge: blockerCount },
     { id: 'stream', label: 'Stream',  badge: streamEntries.length || undefined },
     { id: 'adrs',   label: 'ADRs',    badge: streamEntries.filter(e => e.type === 'decision').length || undefined },
     { id: 'status', label: 'Status' },
@@ -1401,6 +1551,9 @@ export function DevDashboard({
                 agents={parseAgents(bb.terminals, streamEntries)}
                 humans={parseHumans(streamEntries)}
               />
+            )}
+            {activeView.mode === 'workspace' && activeView.tab === 'blackboard' && (
+              <BlackboardView blackboard={bb} liveState={liveState} connected={bbConnected}/>
             )}
             {activeView.mode === 'workspace' && activeView.tab === 'backlog' && (
               <BacklogView items={inboxItems}/>
