@@ -81,7 +81,7 @@ async function broadcastToAgents(source: string, message: string): Promise<void>
     promises.push(
       fetch(`http://127.0.0.1:${callbackPort}/notify`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...corsHeaders },
         body: JSON.stringify({ source, message }),
         signal: controller.signal,
       })
@@ -127,6 +127,18 @@ Bun.serve({
   fetch(req, server) {
     const url = new URL(req.url)
 
+    // CORS — allow dashboard on any local port
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'content-type',
+        },
+      })
+    }
+    const corsHeaders = { 'Access-Control-Allow-Origin': '*' }
+
     // WebSocket upgrade
     if (url.pathname === '/ws') {
       if (server.upgrade(req)) return
@@ -141,7 +153,7 @@ Bun.serve({
           agentCallbacks.set(body.callback_port, body.agent)
           console.log(`registered: ${body.agent} @ callback port ${body.callback_port}`)
           return new Response(JSON.stringify({ ok: true, agents: agentCallbacks.size }), {
-            headers: { 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json', ...corsHeaders },
           })
         } catch (err) {
           return new Response(JSON.stringify({ error: String(err) }), { status: 400 })
@@ -158,7 +170,7 @@ Bun.serve({
           agentCallbacks.delete(body.callback_port)
           console.log(`unregistered: ${name ?? 'unknown'} @ callback port ${body.callback_port}`)
           return new Response(JSON.stringify({ ok: true }), {
-            headers: { 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json', ...corsHeaders },
           })
         } catch (err) {
           return new Response(JSON.stringify({ error: String(err) }), { status: 400 })
@@ -174,11 +186,11 @@ Bun.serve({
           const data = readBlackboard()
           if (body.section && body.section in data) {
             return new Response(JSON.stringify({ data: data[body.section] }), {
-              headers: { 'content-type': 'application/json' },
+              headers: { 'content-type': 'application/json', ...corsHeaders },
             })
           }
           return new Response(JSON.stringify({ data }), {
-            headers: { 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json', ...corsHeaders },
           })
         } catch (err) {
           return new Response(JSON.stringify({ error: String(err) }), { status: 400 })
@@ -215,7 +227,7 @@ Bun.serve({
           await broadcastAll(body.source ?? 'agent', `write to ${body.path}`)
 
           return new Response(JSON.stringify({ ok: true }), {
-            headers: { 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json', ...corsHeaders },
           })
         } catch (err) {
           return new Response(JSON.stringify({ error: String(err) }), { status: 400 })
@@ -247,7 +259,7 @@ Bun.serve({
           await broadcastAll('dashboard', `New directive: ${body.text}${target}`)
 
           return new Response(JSON.stringify({ ok: true, id: directive.id }), {
-            headers: { 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json', ...corsHeaders },
           })
         } catch (err) {
           return new Response(JSON.stringify({ error: String(err) }), { status: 400 })
@@ -259,7 +271,7 @@ Bun.serve({
     if (url.pathname === '/state') {
       const data = readBlackboard()
       return new Response(JSON.stringify(data), {
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...corsHeaders },
       })
     }
 
@@ -268,7 +280,7 @@ Bun.serve({
       const agents: Record<string, number> = {}
       for (const [port, name] of agentCallbacks) agents[name] = port
       return new Response(JSON.stringify(agents), {
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...corsHeaders },
       })
     }
 
