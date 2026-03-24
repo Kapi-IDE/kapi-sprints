@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/blackboard/node_modules
+/blackboard/bun.lock
+/blackboard/blackboard-live.yaml
 /.pnp
 .pnp.*
 .yarn/*

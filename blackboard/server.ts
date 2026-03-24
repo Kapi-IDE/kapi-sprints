@@ -290,5 +290,5 @@ Bun.serve({
 })
 
 console.log(`blackboard-server: http://localhost:${PORT}`)
-console.log(`  dashboard: http://localhost:3000`)
+console.log(`  dashboard: http://localhost:${DASHBOARD_PORT}`)
 console.log(`  agents register via POST /register`)
