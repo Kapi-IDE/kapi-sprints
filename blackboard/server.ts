@@ -227,20 +227,24 @@ Bun.serve({
     if (url.pathname === '/directive' && req.method === 'POST') {
       return (async () => {
         try {
-          const body = await req.json() as { text: string; assignee?: string }
+          const body = await req.json() as { text: string; title?: string; assignee?: string; assigned_to?: string; from?: string }
           const data = readBlackboard()
           if (!Array.isArray(data.directives)) data.directives = []
+          const assignee = body.assigned_to ?? body.assignee
           const directive: any = {
             id: `d${Date.now()}`,
+            title: body.title ?? body.text,
             text: body.text,
+            from: body.from ?? 'dashboard',
             posted_at: now(),
             status: 'pending',
           }
-          if (body.assignee) directive.assignee = body.assignee
+          if (assignee) directive.assigned_to = assignee
           data.directives.push(directive)
-          appendLog(data, `directive posted: ${body.text}`)
+          const target = assignee ? ` → ${assignee}` : ''
+          appendLog(data, `directive posted: ${body.text}${target}`)
           writeBlackboard(data)
-          await broadcastAll('dashboard', `New directive: ${body.text}`)
+          await broadcastAll('dashboard', `New directive: ${body.text}${target}`)
 
           return new Response(JSON.stringify({ ok: true, id: directive.id }), {
             headers: { 'content-type': 'application/json' },
