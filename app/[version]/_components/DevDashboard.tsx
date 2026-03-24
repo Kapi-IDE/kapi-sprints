@@ -1237,8 +1237,8 @@ export function DevDashboard({
     () => liveState ? liveToBlackboardData(liveState) : null,
     [liveState],
   )
-  // Use live data when connected, fall back to SSR-provided data
-  const bb = liveBlackboard ?? blackboard
+  // Use live data only when connected, otherwise fall back to SSR
+  const bb = (bbConnected && liveBlackboard) ? liveBlackboard : blackboard
 
   const totalTasks = blocks.reduce((n, b) => n + b.tasks.length, 0)
 

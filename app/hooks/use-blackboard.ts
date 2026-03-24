@@ -48,31 +48,42 @@ export function useBlackboard(options: UseBlackboardOptions = {}) {
   const [connected, setConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mountedRef = useRef(true)
+
+  const clearReconnect = useCallback(() => {
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current)
+      reconnectTimer.current = null
+    }
+  }, [])
 
   const connect = useCallback(() => {
-    if (!enabled) return
+    if (!enabled || !mountedRef.current) return
     if (wsRef.current?.readyState === WebSocket.OPEN) return
+    clearReconnect()
 
     try {
       const ws = new WebSocket(url)
 
       ws.onopen = () => {
-        setConnected(true)
+        if (mountedRef.current) setConnected(true)
       }
 
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data)
-          if (msg.type === 'state' && msg.data) {
+          if (msg.type === 'state' && msg.data && mountedRef.current) {
             setState(msg.data)
           }
         } catch {}
       }
 
       ws.onclose = () => {
-        setConnected(false)
         wsRef.current = null
-        // Reconnect after 3s
+        if (!mountedRef.current) return
+        setConnected(false)
+        setState(null)
+        clearReconnect()
         reconnectTimer.current = setTimeout(connect, 3000)
       }
 
@@ -82,18 +93,21 @@ export function useBlackboard(options: UseBlackboardOptions = {}) {
 
       wsRef.current = ws
     } catch {
-      // Server not running — retry silently
+      if (!mountedRef.current) return
+      clearReconnect()
       reconnectTimer.current = setTimeout(connect, 5000)
     }
-  }, [url, enabled])
+  }, [url, enabled, clearReconnect])
 
   useEffect(() => {
+    mountedRef.current = true
     connect()
     return () => {
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+      mountedRef.current = false
+      clearReconnect()
       if (wsRef.current) wsRef.current.close()
     }
-  }, [connect])
+  }, [connect, clearReconnect])
 
   return { state, connected }
 }

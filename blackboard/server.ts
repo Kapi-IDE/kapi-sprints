@@ -75,11 +75,14 @@ const agentCallbacks = new Map<number, string>()
 async function broadcastToAgents(source: string, message: string): Promise<void> {
   const promises: Promise<void>[] = []
   for (const [callbackPort, agentName] of agentCallbacks) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
     promises.push(
       fetch(`http://127.0.0.1:${callbackPort}/notify`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ source, message }),
+        signal: controller.signal,
       })
         .then(r => {
           if (!r.ok) console.error(`notify ${agentName}@${callbackPort}: HTTP ${r.status}`)
@@ -88,6 +91,7 @@ async function broadcastToAgents(source: string, message: string): Promise<void>
           console.error(`notify ${agentName}@${callbackPort}: ${err.message}`)
           agentCallbacks.delete(callbackPort)
         })
+        .finally(() => clearTimeout(timeout))
     )
   }
   await Promise.allSettled(promises)
@@ -97,10 +101,14 @@ async function broadcastToAgents(source: string, message: string): Promise<void>
 const wsClients = new Set<ServerWebSocket<unknown>>()
 
 function broadcastDashboard(): void {
-  const state = readBlackboard()
-  const msg = JSON.stringify({ type: 'state', data: state })
-  for (const ws of wsClients) {
-    if (ws.readyState === 1) ws.send(msg)
+  try {
+    const state = readBlackboard()
+    const msg = JSON.stringify({ type: 'state', data: state })
+    for (const ws of wsClients) {
+      if (ws.readyState === 1) ws.send(msg)
+    }
+  } catch (err) {
+    console.error('broadcastDashboard failed:', err)
   }
 }
 
@@ -184,7 +192,11 @@ Bun.serve({
           const body = await req.json() as { path: string; value: any; log_entry?: string; source?: string }
           const data = readBlackboard()
 
+          const FORBIDDEN = new Set(['__proto__', 'constructor', 'prototype'])
           const parts = body.path.split('.')
+          if (parts.some(p => FORBIDDEN.has(p))) {
+            return new Response(JSON.stringify({ error: 'invalid path' }), { status: 400 })
+          }
           let target = data
           for (let i = 0; i < parts.length - 1; i++) {
             if (target[parts[i]] === undefined || target[parts[i]] === null) {
