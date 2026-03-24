@@ -80,7 +80,7 @@ Claude Code terminals          Markdown files              Dashboard
 ┌──────────────┐
 │ Terminal 1   │──writes──▶  docs/operations/
 │  /dev v1     │             ├── blackboard/
-├──────────────┤             │   ├── board.md      ◀──reads──  localhost:3000
+├──────────────┤             │   ├── board.md      ◀──reads──  localhost:8791
 │ Terminal 2   │──writes──▶  │   └── entries/
 │  /test v1    │             ├── sprints/v1/
 ├──────────────┤             │   ├── tasks.md      ◀──reads──  Sprint progress
@@ -155,7 +155,7 @@ git clone https://github.com/kapihq/kapi-sprints.git
 cd kapi-sprints
 npm install
 npm run dev
-# → http://localhost:3000
+# → http://localhost:8791
 ```
 
 Open the dashboard. You'll see Sprint v1 — the sprint that built kapi-sprints itself.

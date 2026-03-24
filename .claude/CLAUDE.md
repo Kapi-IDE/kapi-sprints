@@ -86,7 +86,7 @@ The repo includes a blackboard server + MCP shim in `blackboard/`. These enable 
 ### How it connects
 
 - **`.mcp.json`** at repo root configures `blackboard-channel` pointing to `blackboard/shim.ts`
-- The shim auto-starts `blackboard/server.ts` on port 8790 if not already running
+- The shim auto-starts `blackboard/server.ts` on port 8790 and the Next.js dashboard on port 8791 if not already running
 - Every Claude Code session gets `read_blackboard` and `write_to_blackboard` tools
 - Writes broadcast to ALL connected agents via `<channel>` notifications
 
@@ -119,11 +119,13 @@ claude mcp add --scope user blackboard-channel -- bun /path/to/kapi-sprints/blac
 
 ### Dashboard
 
-The Next.js dashboard at `localhost:3000` connects via WebSocket (`ws://localhost:8790/ws`) for live updates. The status bar shows connection state — green "live" when connected, gray "polling" when falling back to SSR.
+The Next.js dashboard at `localhost:8791` connects via WebSocket (`ws://localhost:8790/ws`) for live updates. The status bar shows connection state — green "live" when connected, gray "polling" when falling back to SSR.
 
 ## Development
 
 ```bash
-npm run dev    # localhost:3000
+npm run dev    # localhost:8791 (port 8791 to avoid conflicts)
 npm run build  # must pass before every push
 ```
+
+Note: The shim auto-starts both the blackboard server (:8790) and the dashboard (:8791) when Claude Code launches. You rarely need to run `npm run dev` manually.

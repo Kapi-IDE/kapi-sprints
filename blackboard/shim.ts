@@ -26,8 +26,13 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 
 import { dirname, join } from 'path'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 const SERVER_URL = process.env.BLACKBOARD_SERVER ?? 'http://127.0.0.1:8790'
+const DASHBOARD_PORT = Number(process.env.DASHBOARD_PORT ?? 8791)
 const SHIM_PORT = Number(process.env.SHIM_PORT || 0) // 0 = auto-assign
 
 // --- Gemini configuration ---
@@ -37,15 +42,27 @@ const GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT || 'kapi-ai-458922
 
 type GeminiMode = 'proxy' | 'vertex' | 'disabled'
 
+// Cached GCP auth token (valid ~1hr, refreshed at 55min)
+let cachedGcpToken: { value: string; expiresAt: number } | null = null
+
+async function getGcpToken(): Promise<string> {
+  if (cachedGcpToken && Date.now() < cachedGcpToken.expiresAt) {
+    return cachedGcpToken.value
+  }
+  const { stdout } = await execAsync('gcloud auth application-default print-access-token', { timeout: 5000 })
+  const token = stdout.trim()
+  cachedGcpToken = { value: token, expiresAt: Date.now() + 55 * 60 * 1000 }
+  return token
+}
+
 // Determine Gemini mode: proxy key > ADC > disabled
 async function detectGeminiMode(): Promise<GeminiMode> {
   if (GEMINI_API_KEY) return 'proxy'
 
   // Check for ADC credentials
   try {
-    const { execSync } = await import('child_process')
-    const result = execSync('gcloud auth application-default print-access-token 2>/dev/null', { timeout: 5000 })
-    if (result.toString().trim()) return 'vertex'
+    const token = await getGcpToken()
+    if (token) return 'vertex'
   } catch {}
 
   return 'disabled'
@@ -79,9 +96,8 @@ async function callGemini(prompt: string, model = 'gemini-2.5-flash'): Promise<s
   }
 
   if (geminiMode === 'vertex') {
-    // Direct Vertex AI call using ADC
-    const { execSync } = await import('child_process')
-    const token = execSync('gcloud auth application-default print-access-token', { timeout: 5000 }).toString().trim()
+    // Direct Vertex AI call using ADC (async, cached token)
+    const token = await getGcpToken()
 
     const vertexModels: Record<string, { id: string; endpoint: string }> = {
       'gemini-3.1-pro': { id: 'gemini-3.1-pro-preview', endpoint: 'https://aiplatform.googleapis.com/v1/projects/{project}/locations/global/publishers/google/models/gemini-3.1-pro-preview:generateContent' },
@@ -142,7 +158,7 @@ const mcp = new Server(
       `- Add log entries for significant actions`,
       `- All agents share one blackboard — you will be notified when anyone writes`,
       ``,
-      `Dashboard: ${SERVER_URL}`,
+      `Dashboard: http://127.0.0.1:${DASHBOARD_PORT}`,
     ].join('\n'),
   },
 )
@@ -372,19 +388,21 @@ async function register(): Promise<void> {
   }
 }
 
-// Unregister on exit
-async function unregister(): Promise<void> {
+// Unregister on exit (with timeout so Ctrl+C always works)
+async function safeExit(): Promise<void> {
   try {
     await fetch(`${SERVER_URL}/unregister`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ callback_port: actualPort }),
+      signal: AbortSignal.timeout(1500),
     })
   } catch {}
+  process.exit(0)
 }
 
-process.on('SIGINT', async () => { await unregister(); process.exit(0) })
-process.on('SIGTERM', async () => { await unregister(); process.exit(0) })
+process.on('SIGINT', safeExit)
+process.on('SIGTERM', safeExit)
 
 // --- Auto-start server if not running ---
 async function ensureServerRunning(): Promise<boolean> {
@@ -425,6 +443,31 @@ async function ensureServerRunning(): Promise<boolean> {
   return false
 }
 
+// --- Auto-start Next.js dashboard if not running ---
+async function ensureDashboardRunning(): Promise<void> {
+  try {
+    const resp = await fetch(`http://127.0.0.1:${DASHBOARD_PORT}`, { signal: AbortSignal.timeout(2000) })
+    if (resp.ok || resp.status === 404) {
+      process.stderr.write(`blackboard-shim: dashboard already running at :${DASHBOARD_PORT}\n`)
+      return
+    }
+  } catch {
+    // Not running — start it
+  }
+
+  const projectDir = dirname(dirname(new URL(import.meta.url).pathname))
+  process.stderr.write(`blackboard-shim: starting dashboard at :${DASHBOARD_PORT}...\n`)
+
+  Bun.spawn(['npm', 'run', 'dev'], {
+    cwd: projectDir,
+    env: { ...process.env, PORT: String(DASHBOARD_PORT) },
+    stdio: ['ignore', 'ignore', 'ignore'],
+  })
+
+  // Fire and forget — dashboard takes a few seconds to compile
+  // Agents don't need it to coordinate
+}
+
 // Detect Gemini availability
 geminiMode = await detectGeminiMode()
 if (geminiMode !== 'disabled') {
@@ -435,3 +478,4 @@ if (geminiMode !== 'disabled') {
 
 await ensureServerRunning()
 await register()
+ensureDashboardRunning() // non-blocking

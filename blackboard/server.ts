@@ -28,6 +28,7 @@ import type { ServerWebSocket } from 'bun'
 
 // --- Config ---
 const PORT = Number(process.env.BLACKBOARD_PORT ?? 8790)
+const DASHBOARD_PORT = Number(process.env.DASHBOARD_PORT ?? 8791)
 const DIR = process.env.BLACKBOARD_DIR ?? dirname(new URL(import.meta.url).pathname)
 const TEMPLATE = join(DIR, 'blackboard.yaml')
 const LIVE = join(DIR, 'blackboard-live.yaml')
@@ -267,19 +268,11 @@ Bun.serve({
       })
     }
 
-    // GET / — minimal status (full dashboard is the Next.js app)
+    // GET / — redirect to Next.js dashboard
     if (url.pathname === '/') {
-      const data = readBlackboard()
-      const agentCount = Object.keys(data.agents ?? {}).length
-      const logCount = (data.log ?? []).length
-      return new Response(JSON.stringify({
-        status: 'ok',
-        port: PORT,
-        agents: agentCount,
-        log_entries: logCount,
-        dashboard: 'http://localhost:3000',
-      }), {
-        headers: { 'content-type': 'application/json' },
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `http://localhost:${DASHBOARD_PORT}` },
       })
     }
 
