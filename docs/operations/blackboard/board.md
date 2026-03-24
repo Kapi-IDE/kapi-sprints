@@ -48,6 +48,7 @@ The blackboard is the single source of truth for sprint coordination. All agents
 ## Agent Status
 
 - **Dev** (v1) — idle feb 24, all 11 tasks committed
+- **PM** (v2) — idle mar 12 10am, PRD + tasks written, handoff to Dev
 
 ---
 
@@ -58,6 +59,7 @@ The blackboard is the single source of truth for sprint coordination. All agents
 - **Dev** (v1) — Block A complete: /prd /dev /test /post skills created — feb 24 12pm
 - **Dev** (v1) — Block B complete: demo data coherent, auth app removed — feb 24 2pm
 - **Dev** (v1) — Block C complete: README, NOTICE, guides shipped — feb 24 4pm
+- **PM** (v2) — PRD locked: 9 tasks, 3 blocks, goal: decision capture + competence scoring as HITL foundation — mar 12 10am
 
 ---
 

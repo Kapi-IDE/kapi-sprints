@@ -23,6 +23,9 @@ Use `/post queue [idea]` from Claude Code to add items here.
 [ ] **Self-host Geist font** for privacy/performance
 [ ] **Staging deploy** for kapi-sprints itself (currently runs locally only)
 [ ] **Configurable sprint duration** — currently hardcoded 3 hours
+[ ] **Per-category competence tracking** — track agent reliability per task category (e.g. refactoring, testing, API design). Compute competence scores from approve/reject/edit history. Feed into autonomy ramp formula: `review_rate = max(baseline, initial * e^(-competence * time))`. See vision.md §Autonomy Ramp.
+[ ] **Shadow mode infrastructure** — agents shadow human decisions silently: both decide, system compares. When agreement >95% in a category, promote agent to autonomous for that category. Novel tasks (72% agreement) stay in review. High-stakes actions always require approval gate. See vision.md §Shadow Mode.
+[ ] **Active learning loop** — every human approve/reject/edit on a queued item becomes a labeled training example (+1, -1, diff). Store as structured dataset in `docs/operations/decisions/`. Use for DPO fine-tune (correction pairs) and prompt optimization (few-shot from approved). Sprint system generates its own improvement data. See vision.md §Active Learning Loop.
 
 ---
 

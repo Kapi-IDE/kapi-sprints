@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { OPS_DIR } from '../../../../../project.config'
 
 export async function POST(
   req: NextRequest,
@@ -9,7 +10,7 @@ export async function POST(
   const { version } = await params
   const { taskId, checked } = await req.json() as { taskId: string; checked: boolean }
 
-  const filePath = path.join(process.cwd(), 'docs/operations/sprints', version, 'tasks.md')
+  const filePath = path.join(OPS_DIR, 'sprints', version, 'tasks.md')
 
   try {
     const content = await fs.readFile(filePath, 'utf-8')

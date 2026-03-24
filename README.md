@@ -162,6 +162,93 @@ Open the dashboard. You'll see Sprint v1 — the sprint that built kapi-sprints 
 
 ---
 
+## Live Blackboard Channel
+
+The dashboard supports **live multi-agent coordination** via a blackboard server and MCP channel shim. Multiple Claude Code sessions connect to a shared YAML blackboard — every write broadcasts to all agents in real time.
+
+```
+                  ┌─────────────────────────┐
+                  │   BLACKBOARD SERVER      │  ← single process (port 8790)
+                  │   blackboard/server.ts   │
+                  │                          │
+                  │  • Owns blackboard YAML  │
+                  │  • Agent callback registry│
+                  │  • Broadcasts on change  │
+                  └─────┬───────┬───────┬────┘
+                        │       │       │
+                   HTTP │  HTTP │  HTTP │  (broadcast notifications)
+                        │       │       │
+                  ┌─────┴──┐ ┌──┴────┐ ┌┴───────┐
+                  │ SHIM A │ │SHIM B │ │ SHIM C │  ← MCP stdio proxies
+                  └───┬────┘ └──┬────┘ └───┬────┘
+                   stdio     stdio      stdio
+                      │         │          │
+                  Claude A  Claude B   Claude C
+                      │         │          │
+                      └─────────┴──────────┘
+                               │
+                        Dashboard (Next.js)
+                        ws://localhost:8790/ws
+```
+
+### Setup
+
+**Prerequisites**: [Bun](https://bun.sh) runtime (`curl -fsSL https://bun.sh/install | bash`)
+
+**Option A — Per-project** (`.mcp.json` already included):
+
+Just start Claude Code from the repo directory. The `.mcp.json` configures the shim automatically.
+
+**Option B — Global** (works from any directory):
+
+```bash
+claude mcp add --scope user blackboard-channel -- \
+  bun /path/to/kapi-sprints/blackboard/shim.ts
+```
+
+This registers the channel in `~/.claude/settings.json`. Every Claude Code session gets the blackboard tools — no per-project config needed.
+
+### How It Works
+
+1. Claude Code spawns the shim as an MCP server on startup
+2. The shim auto-starts the blackboard server on port 8790 if not already running
+3. Each shim registers a callback port with the server
+4. Any `write_to_blackboard` call triggers a broadcast to ALL connected shims
+5. Each shim delivers a `<channel>` notification to its Claude session
+6. The Next.js dashboard connects via WebSocket for live updates
+
+You don't need to start anything manually — the shim handles server lifecycle automatically.
+
+### MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `read_blackboard` | Read the full YAML state (or a specific section) |
+| `write_to_blackboard` | Write to a dot-path (e.g. `agents.dev`), notifies all agents |
+
+### Server Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/state` | GET | Raw JSON state |
+| `/agents` | GET | Registered agent callbacks |
+| `/register` | POST | Shim registers callback port |
+| `/unregister` | POST | Shim deregisters on shutdown |
+| `/read` | POST | Read blackboard state |
+| `/write` | POST | Write + broadcast to all agents |
+| `/directive` | POST | Post a directive (from dashboard or human) |
+| `/ws` | WS | Live WebSocket updates (dashboard) |
+
+### File Structure
+
+```
+blackboard/
+├── server.ts     # Shared singleton — owns YAML, broadcasts to all agents
+└── shim.ts       # Per-session MCP proxy — spawned by Claude Code
+```
+
+---
+
 ## What's Inside
 
 ### Claude Code Skills (`.claude/skills/`)

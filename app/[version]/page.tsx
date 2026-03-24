@@ -4,6 +4,7 @@ import path from 'path'
 import { execSync } from 'child_process'
 import { marked } from 'marked'
 import { DevDashboard } from './_components/DevDashboard'
+import { OPS_DIR, DOCS_DIR } from '../../project.config'
 
 export interface ParsedTask {
   id: string
@@ -82,7 +83,7 @@ export interface SprintStats {
 function git(cmd: string): string {
   try {
     return execSync(`git ${cmd}`, {
-      cwd: process.cwd(),
+      cwd: path.dirname(OPS_DIR),
       encoding: 'utf-8',
       timeout: 8000,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -299,7 +300,7 @@ export default async function VersionPage({
   params: Promise<{ version: string }>
 }) {
   const { version } = await params
-  const docsDir  = path.join(process.cwd(), 'docs/operations/sprints')
+  const docsDir  = path.join(OPS_DIR, 'sprints')
   const sprintDir = path.join(docsDir, version)
 
   try { await fs.access(sprintDir) } catch { notFound() }
@@ -359,7 +360,7 @@ export default async function VersionPage({
       .then(md => { codeReviewHtml = marked.parse(md) as string }),
   ])
 
-  const opsDir = path.join(process.cwd(), 'docs/operations')
+  const opsDir = OPS_DIR
 
   let blackboard: BlackboardData = {
     lastUpdated: '', blockers: [], decisions: [], directives: [],
@@ -391,7 +392,7 @@ export default async function VersionPage({
   const streamEntries = await parseEntries(path.join(opsDir, 'blackboard/entries'))
 
   // Foundation doc scan
-  const foundationDir = path.join(process.cwd(), 'docs/foundation')
+  const foundationDir = path.join(DOCS_DIR, 'foundation')
   const foundationDocs = [
     { label: 'Vision & Mission', path: 'docs/foundation/vision.md', file: 'vision.md' },
     { label: 'Market & Users',   path: 'docs/foundation/market.md', file: 'market.md' },
@@ -412,13 +413,12 @@ export default async function VersionPage({
   let inboxItems: string[] = []
   try {
     const backlogMd   = await fs.readFile(path.join(opsDir, 'backlog.md'), 'utf-8')
-    const inboxMatch  = backlogMd.match(/^## Inbox\s*\n([\s\S]*?)(?=\n## |\n---\n|$)/m)
+    const inboxMatch  = backlogMd.match(/## Inbox\s*\n([\s\S]*?)(?=\n## |\n---\n|$)/)
     if (inboxMatch) {
       inboxItems = inboxMatch[1]
         .split('\n')
         .map(l => l.trim())
         .filter(l => l.match(/^\[[ x]\]/))
-        .map(l => l.slice(2).trim())
         .map(l => l.replace(/^-\s*/, ''))
     }
   } catch {}
@@ -452,7 +452,7 @@ export default async function VersionPage({
   try {
     const raw = execSync(
       'git log --no-merges --format="AUTHOR:%aN" --numstat -n 200',
-      { cwd: process.cwd(), stdio: ['pipe', 'pipe', 'ignore'] }
+      { cwd: path.dirname(OPS_DIR), stdio: ['pipe', 'pipe', 'ignore'] }
     ).toString()
 
     const authorMap = new Map<string, AuthorStats>()

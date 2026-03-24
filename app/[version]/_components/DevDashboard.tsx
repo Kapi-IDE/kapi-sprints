@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,6 +11,34 @@ import { RightPanel } from './RightPanel'
 import { OverviewPanel } from './OverviewPanel'
 import type { SpecStatus } from './OverviewPanel'
 import { PROJECT } from '@/project.config'
+import { useBlackboard, type BlackboardState } from '@/app/hooks/use-blackboard'
+
+/** Convert live blackboard server state → the BlackboardData format the UI expects */
+function liveToBlackboardData(live: BlackboardState): BlackboardData {
+  const agents = live.agents ?? {}
+  const directives = live.directives ?? []
+  const log = live.log ?? []
+
+  return {
+    lastUpdated: log.length > 0 ? log[log.length - 1].ts : '',
+    blockers: directives
+      .filter(d => d.priority === 'P0' && d.status !== 'done')
+      .map(d => `**${d.title ?? d.text ?? d.id}** — ${d.status ?? 'pending'}`),
+    decisions: [],
+    directives: directives.map(d => {
+      const assignee = d.assigned_to ?? d.assignee ?? ''
+      return `**${d.title ?? d.text ?? d.id}**${assignee ? ` → ${assignee}` : ''} (${d.status ?? 'pending'})`
+    }),
+    findings: [],
+    terminals: Object.entries(agents).map(([name, a]) =>
+      `**${name}** (${a.role ?? 'agent'}) — ${a.status ?? 'unknown'}`
+    ),
+    activity: log.slice(-10).reverse().map(l => `${l.ts.slice(11, 19)} ${l.entry}`),
+    resolved: directives
+      .filter(d => d.status === 'done')
+      .map(d => d.title ?? d.text ?? d.id),
+  }
+}
 
 const SPRINT_DURATION_SECS = 3 * 60 * 60
 
@@ -1203,6 +1231,15 @@ export function DevDashboard({
 }: Props) {
   const router = useRouter()
 
+  // Live blackboard: WebSocket connection to blackboard server
+  const { state: liveState, connected: bbConnected } = useBlackboard()
+  const liveBlackboard = useMemo(
+    () => liveState ? liveToBlackboardData(liveState) : null,
+    [liveState],
+  )
+  // Use live data when connected, fall back to SSR-provided data
+  const bb = liveBlackboard ?? blackboard
+
   const totalTasks = blocks.reduce((n, b) => n + b.tasks.length, 0)
 
   const [checkedTasks, setCheckedTasks] = useState<Set<string>>(
@@ -1227,10 +1264,12 @@ export function DevDashboard({
     } catch {}
   }, [timerKey])
 
+  // Only poll via SSR refresh when blackboard WebSocket is disconnected
   useEffect(() => {
+    if (bbConnected) return
     const id = setInterval(() => router.refresh(), 30_000)
     return () => clearInterval(id)
-  }, [router])
+  }, [router, bbConnected])
 
   useEffect(() => {
     if (!sprintStartTime) { setTimeRemaining(SPRINT_DURATION_SECS); return }
@@ -1311,7 +1350,7 @@ export function DevDashboard({
 
         <LeftSidebar
           version={version} versions={versions} sprintStates={sprintStates}
-          currentVersion={currentVersion} blackboard={blackboard}
+          currentVersion={currentVersion} blackboard={bb}
           inboxItems={inboxItems} streamEntries={streamEntries}
           activeView={activeView} onView={setActiveView}
         />
@@ -1353,13 +1392,13 @@ export function DevDashboard({
                 specStatus={specStatus}
                 blocks={blocks}
                 layerScores={layerScores}
-                blackboard={blackboard}
+                blackboard={bb}
                 streamEntries={streamEntries}
               />
             )}
             {activeView.mode === 'workspace' && activeView.tab === 'agents' && (
               <AgentsView
-                agents={parseAgents(blackboard.terminals, streamEntries)}
+                agents={parseAgents(bb.terminals, streamEntries)}
                 humans={parseHumans(streamEntries)}
               />
             )}
@@ -1401,7 +1440,13 @@ export function DevDashboard({
             <span className={timerColor}>{fmt(timeRemaining)}</span>
           </>
         )}
-        <span className="ml-auto text-zinc-800">/{version}</span>
+        <span className="ml-auto flex items-center gap-3">
+          <span className={`flex items-center gap-1 ${bbConnected ? 'text-emerald-700' : 'text-zinc-700'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${bbConnected ? 'bg-emerald-500' : 'bg-zinc-700'}`}/>
+            {bbConnected ? 'live' : 'polling'}
+          </span>
+          <span className="text-zinc-800">/{version}</span>
+        </span>
       </div>
 
     </div>

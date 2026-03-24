@@ -79,6 +79,48 @@ Sizes: S = ~15 min, M = ~30 min
 4. **Small sprints** — 3 hours max. If it takes longer, the planning was wrong.
 5. **No clever code** — Boring, obvious, well-named code wins.
 
+## Live Blackboard Channel
+
+The repo includes a blackboard server + MCP shim in `blackboard/`. These enable real-time multi-agent coordination via Claude Code channels.
+
+### How it connects
+
+- **`.mcp.json`** at repo root configures `blackboard-channel` pointing to `blackboard/shim.ts`
+- The shim auto-starts `blackboard/server.ts` on port 8790 if not already running
+- Every Claude Code session gets `read_blackboard` and `write_to_blackboard` tools
+- Writes broadcast to ALL connected agents via `<channel>` notifications
+
+### Agent protocol
+
+On startup:
+1. `read_blackboard` to see current state
+2. `write_to_blackboard` to register under `agents.<your_name>` with role, status, capabilities
+3. Check `directives:` for assigned work
+
+On `<channel>` notification:
+1. `read_blackboard` to see what changed
+2. Check directives for tasks assigned to you
+3. Do the work
+4. `write_to_blackboard` to update your status and log results
+
+Rules:
+- Only write to your own section under `agents.<your_name>`
+- Never modify another agent's section
+- Always add a `log_entry` when writing
+- Read before writing to avoid stale state
+
+### Global install (optional)
+
+To use the blackboard from any project directory:
+
+```bash
+claude mcp add --scope user blackboard-channel -- bun /path/to/kapi-sprints/blackboard/shim.ts
+```
+
+### Dashboard
+
+The Next.js dashboard at `localhost:3000` connects via WebSocket (`ws://localhost:8790/ws`) for live updates. The status bar shows connection state — green "live" when connected, gray "polling" when falling back to SSR.
+
 ## Development
 
 ```bash

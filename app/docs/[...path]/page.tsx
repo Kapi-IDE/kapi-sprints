@@ -4,8 +4,9 @@ import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 import type { Metadata } from 'next'
 import { DocViewer } from './_components/DocViewer'
+import { DOCS_DIR } from '../../../project.config'
 
-const DOCS_ROOT = path.join(process.cwd(), 'docs')
+const DOCS_ROOT = DOCS_DIR
 
 // ─── File tree ────────────────────────────────────────────────────────────────
 

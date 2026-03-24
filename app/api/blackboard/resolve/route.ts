@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { OPS_DIR } from '../../../../project.config'
 
 // POST /api/blackboard/resolve
 // Body: { item: string; resolution: string; action: 'adr' | 'task' | 'close'; adrTitle?: string; assignee?: string }
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'item and resolution are required' }, { status: 400 })
     }
 
-    const boardDir   = path.join(process.cwd(), 'docs/operations/blackboard')
+    const boardDir   = path.join(OPS_DIR, 'blackboard')
     const boardPath  = path.join(boardDir, 'board.md')
     const entriesDir = path.join(boardDir, 'entries')
     await fs.mkdir(entriesDir, { recursive: true })
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
       await fs.writeFile(path.join(entriesDir, entryFilename), adrContent, 'utf-8')
 
     } else if (action === 'task') {
-      const backlogPath = path.join(process.cwd(), 'docs/operations/backlog.md')
+      const backlogPath = path.join(OPS_DIR, 'backlog.md')
       try {
         let backlog    = await fs.readFile(backlogPath, 'utf-8')
         const taskBullet = `- [ ] **${assignee}** — ${title}: ${resolution} — ${ts}`

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import fs from 'fs/promises'
 import path from 'path'
+import { OPS_DIR } from '../project.config'
 
 export default async function RootPage() {
-  const docsDir = path.join(process.cwd(), 'docs/operations/sprints')
+  const docsDir = path.join(OPS_DIR, 'sprints')
   try {
     const entries = await fs.readdir(docsDir, { withFileTypes: true })
     const versions = entries

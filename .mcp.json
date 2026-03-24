@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "blackboard-channel": {
+      "command": "bun",
+      "args": ["blackboard/shim.ts"],
+      "env": {
+        "BLACKBOARD_SERVER": "http://127.0.0.1:8790",
+        "GEMINI_API_KEY": "",
+        "GEMINI_PROXY_URL": "https://learn.modernaipro.com/api/gemini/v1"
+      }
+    }
+  }
+}
