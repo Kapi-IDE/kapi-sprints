@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "marked": "^17.0.3",
     "mermaid": "^11.12.3",
     "next": "16.1.6",
