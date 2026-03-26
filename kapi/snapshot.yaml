@@ -1,33 +1,97 @@
-# PM-curated sprint snapshot
-# Updated by PM agent after meaningful state changes
-# Dashboard reads this for the status banner and milestones
+# Project Snapshot — team's shared working memory
+# Updated by PM (control-shell) continuously — after task completions, blockers, sprint boundaries
+# Dashboard reads this for status banner, progress, and milestones
+# Agents read this to understand current project state
 
-headline: "v0: dashboard + multi-agent wiring"
-status: green  # green | yellow | red
-phase: build   # plan | build | qa | review | done
-progress: "0/0"
-updated: "2026-03-25T16:30:00Z"
+updated: "2026-03-26T13:50:00Z"
+updated_by: PM
+
+headline: "v1: Complete — Stabilize Pipeline + Decision Capture"
+status: green
+phase: done
+progress: "15/15"
+
+sprint:
+  id: v1
+  title: Stabilize Pipeline + Decision Capture
+  goal: Fix directive pipeline, polish for demo, lay HITL foundation with decisions system
+  window: 3 hours
+  status: complete
 
 text: |
-  Sprint v0 is in build phase. Dashboard sidebar has been unified
-  across all 3 pages. 6 agents created with MCP blackboard protocol
-  (pm, dev, researcher, reviewer, tester, ux). 5 skills ported from
-  kapi-platform (preflight, scorecard, walkthrough, checkpoint, resume).
+  Sprint v1 complete. 15/15 tasks done across 5 agents. Directive pipeline
+  fixed with callback re-registration and targeted routing. Decisions system
+  shipped (decisions.yaml + /decisions page + /review skill). Dashboard
+  redesigned with 5-card command center. Unified sidebar across all pages.
+  Sprint detail page separated from dashboard. Lessons and backlog pages live.
+  Agent milestones/learnings tabs with heartbeat filtering.
 
-  The get-started page still references /sprint init which doesn't
-  exist. Output paths on that page also wrong (says docs/operations/
-  instead of kapi/). These need fixing before docs can ship.
+  Next: close sprint, collect lessons, plan v2.
 
-  Next: wire snapshot.yaml into dashboard overview, then UX audit
-  the unified sidebar for consistency.
+tasks:
+  done:
+    - { id: T01, title: "Fix directive pipeline", agent: PM }
+    - { id: T02, title: "Fix get-started page", agent: captain }
+    - { id: T03, title: "Page title consistency", agent: dev2 }
+    - { id: T04, title: "Verify snapshot.yaml dashboard wiring", agent: dev2 }
+    - { id: T05, title: "Create decisions.yaml + update resolve API", agent: captain }
+    - { id: T06, title: "Build /decisions page", agent: dev2 }
+    - { id: T07, title: "/review skill", agent: captain }
+    - { id: T08, title: "Create snapshot.yaml", agent: PM }
+    - { id: T09, title: "lessons.md + /lessons page", agent: captain }
+    - { id: T10, title: "Update snapshot (continuous)", agent: PM }
+    - { id: T11, title: "/sprints route", agent: dev2 }
+    - { id: T12, title: "Redesign dashboard cards", agent: captain }
+    - { id: T13, title: "Decisions panel in dashboard", agent: dev2 }
+    - { id: T14, title: "Unify sidebar", agent: dev2 }
+    - { id: T15, title: "Agent milestones + learnings tabs", agent: dev2 }
+  in_progress: []
+  queued: []
+
+agents:
+  PM: { role: PM, status: active, task: closing sprint v1 }
+  captain: { role: dev lead, status: idle, completed: [T02, T05, T07, T09, T12, T14] }
+  dev2: { role: copilot, status: idle, completed: [T03, T04, T06, T11, T13, T14, T15] }
+  documenter: { role: documenter, status: idle }
+  test: { role: QA, status: active, task: QA gate verification }
+
+demo_safe:
+  - Sprint dashboard with 5-card command center
+  - Dedicated sprint detail page at /sprints/v1
+  - Multi-agent coordination at /agents (sidebar, chat, tasks, profile, milestones, learnings)
+  - Blackboard server with targeted directive routing
+  - Decisions system (decisions.yaml + /decisions page + /review skill)
+  - Lessons page at /lessons
+  - Backlog management (API + UI)
+  - Doc viewer at /docs
+  - Unified sidebar across all pages
+  - Agent profile auto-creation on registration
+  - Skills: /prd, /dev, /test, /post, /review
+
+known_gaps:
+  - Chat messages overwrite instead of appending
+  - Shim re-registration requires code restart for new features
+  - No competence engine (deferred — not needed at current scale)
+  - Snapshot.yaml update is manual (PM-driven), not auto-triggered
+
+blockers: []
 
 milestones:
-  - agent: dev
-    text: "Dashboard sidebar streamlined, duplicate logo removed"
-    ts: "2026-03-25T15:45:00Z"
-  - agent: dev
-    text: "6 agent definitions with MCP blackboard protocol"
-    ts: "2026-03-25T16:05:00Z"
-  - agent: dev
-    text: "5 skills ported from kapi-platform"
-    ts: "2026-03-25T16:10:00Z"
+  - agent: PM
+    text: "Directive pipeline fixed — callback re-registration + targeted routing"
+    ts: "2026-03-26T01:15:00Z"
+  - agent: captain
+    text: "Get-started page paths corrected"
+    ts: "2026-03-26T01:22:00Z"
+  - agent: dev2
+    text: "Page titles standardized, snapshot wiring verified"
+    ts: "2026-03-26T01:22:00Z"
+  - agent: captain
+    text: "decisions.yaml + resolve API + /review skill shipped"
+    ts: "2026-03-26T13:34:00Z"
+  - agent: dev2
+    text: "/decisions page, unified sidebar, milestones tabs, decisions panel shipped"
+    ts: "2026-03-26T13:33:00Z"
+  - agent: dev2
+    text: "Sprint detail page rewritten — /sprints/v1 separated from dashboard"
+    ts: "2026-03-26T13:44:00Z"

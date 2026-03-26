@@ -12,7 +12,24 @@ export interface Snapshot {
   progress: string
   updated: string
   text: string
+  sprint?: { id: string; title?: string; goal?: string; window?: string }
   milestones: { agent: string; text: string; ts: string }[]
+}
+
+export interface DecisionRecord {
+  id: string
+  type: 'adr' | 'review'
+  title: string
+  status?: string
+  result?: string
+  date: string
+  context?: string
+  decision?: string
+  consequences?: string
+  agent?: string
+  task?: string
+  category?: string
+  notes?: string
 }
 
 export const metadata: Metadata = { title: 'Dashboard · Kapi Sprints' }
@@ -69,6 +86,13 @@ export default async function DashboardPage() {
     snapshot = YAML.parse(raw) as Snapshot
   } catch {}
 
+  let decisionRecords: DecisionRecord[] = []
+  try {
+    const raw = await fs.readFile(path.join(KAPI_DIR, 'decisions.yaml'), 'utf-8')
+    const parsed = YAML.parse(raw)
+    decisionRecords = Array.isArray(parsed?.decisions) ? parsed.decisions : []
+  } catch {}
+
   return (
     <DashboardView
       blockers={blockers}
@@ -78,6 +102,7 @@ export default async function DashboardPage() {
       inboxCount={inboxCount}
       sprints={sprints}
       snapshot={snapshot}
+      decisionRecords={decisionRecords}
     />
   )
 }

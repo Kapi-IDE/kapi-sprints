@@ -5,360 +5,865 @@ agents:
   dev1: null
   shim-58746:
     status: active
-    last_seen: 2026-03-26T01:15:48Z
+    last_seen: 2026-03-26T23:44:59Z
     port: 58746
     gemini: disabled
   control-shell:
-    role: scrum master
-    name: control shell
+    role: PM
+    name: PM
     status: active
     model: claude-opus-4-6
-    last_seen: 2026-03-26T01:16:36Z
+    last_seen: 2026-03-26T23:45:41Z
+    current_sprint: v2
   captain:
     role: Captain
     status: active
     model: claude-opus-4-6
-    last_seen: 2026-03-26T01:15:00Z
+    last_seen: 2026-03-26T23:50:00Z
   dev2:
     role: Copilot
-    name: copilot
-    status: active
+    status: done
+    task: T05-T08 complete (T08 blocked on uncommitted T01)
     model: claude-opus-4-6
-    last_seen: 2026-03-25T19:51:30Z
+    last_seen: 2026-03-26T23:44:30Z
   documenter:
     role: Documenter
     status: active
     model: claude-opus-4-6
-    last_seen: 2026-03-25T20:30:00Z
+    last_seen: 2026-03-26T01:58:00Z
   test:
     role: Test
     name: test
     status: active
     model: claude-opus-4-6
-    last_seen: 2026-03-25T22:12:00Z
-    last_action: "Built test suite: 55 tests across 4 files, all passing"
+    last_seen: 2026-03-26T23:38:00Z
+    current_task: Building test suite for v1+v2 features (7 test areas)
 directives:
-  - id: d1774478120483
-    title: -- do you hear me?
-    text: -- do you hear me?
-    from: Human
-    posted_at: 2026-03-25T22:35:20Z
+  - id: d1774540600000
+    title: "Status update from captain: T02, T05, T07, T09, T12, T14 all complete.
+      Ready for new tasks."
+    text: "Captain reporting: All assigned tasks done — T02 (get-started page), T05
+      (decisions.yaml + resolve API), T07 (/review skill already existed), T09
+      (lessons.md + /lessons page), T12 (5-card dashboard redesign), T14
+      (unified sidebar). Awaiting next assignment."
+    from: captain
+    posted_at: 2026-03-26T13:36:00Z
+    status: completed
+    assigned_to: control-shell
+  - id: d1774532134351
+    title: "Test: QA gate — verify all v1 pages after restart"
+    text: >-
+      Test — all sprint v1 tasks are done except T10. Your job: restart the
+      Next.js dev server (pkill next dev, then PORT=8791 npm run dev), then
+      verify all pages work:
+
+
+      1. /dashboard — loads, shows 5-card command center, snapshot+milestones
+      side by side
+
+      2. /sprints/v1 — dedicated sprint page with PRD + task list
+
+      3. /decisions — decisions page renders cards from decisions.yaml
+
+      4. /lessons — lessons page renders lessons.md
+
+      5. /agents — agents page with unified sidebar
+
+      6. /agents/captain — agent detail with milestones+learnings tabs, no
+      heartbeat noise
+
+      7. /backlog — backlog page with title
+
+      8. /docs — doc viewer
+
+      9. npm run build — must pass
+
+
+      Report which pass and which fail.
+    from: PM
+    posted_at: 2026-03-26T13:35:34Z
+    status: pending
+    assigned_to: test
+  - id: d1774532353244
+    title: "Fix: /sprints/v1 should be sprint detail, not dashboard"
+    text: "Dev2 — the /sprints/v1 route currently renders the full DevDashboard
+      instead of a sprint detail page. Rewrite app/sprints/[version]/page.tsx to
+      be a dedicated sprint view: show PRD content (from
+      kapi/sprints/{version}/prd.md), task list with checkboxes (from tasks.md),
+      progress bar, sprint metadata. The DevDashboard should only live at
+      /dashboard. Use the unified sidebar. Keep it clean — this is the
+      sprint-specific view, not the project overview."
+    from: PM
+    posted_at: 2026-03-26T13:39:13Z
     status: pending
     assigned_to: dev2
-  - id: d1774486774542
-    title: hi control shell
-    text: hi control shell
-    from: Human
-    posted_at: 2026-03-26T00:59:34Z
+  - id: d1774533108675
+    title: "Sprint review: share your lessons"
+    text: Sprint v1 closing. What did you learn? Post your top 2-3 lessons — things
+      that surprised you, patterns that worked, gotchas to watch for. Write them
+      to agents.captain.learnings on the blackboard.
+    from: PM
+    posted_at: 2026-03-26T13:51:48Z
+    status: pending
+    assigned_to: captain
+  - id: d1774533108685
+    title: "Sprint review: share your lessons"
+    text: Sprint v1 closing. What did you learn? Post your top 2-3 lessons — things
+      that surprised you, patterns that worked, gotchas to watch for. Write them
+      to agents.dev2.learnings on the blackboard.
+    from: PM
+    posted_at: 2026-03-26T13:51:48Z
+    status: pending
+    assigned_to: dev2
+  - id: d1774533108702
+    title: "Sprint review: share your lessons"
+    text: Sprint v1 closing. What did you learn? Post your top 2-3 lessons — things
+      that surprised you, patterns that worked, gotchas to watch for. Write them
+      to agents.test.learnings on the blackboard.
+    from: PM
+    posted_at: 2026-03-26T13:51:48Z
+    status: pending
+    assigned_to: test
+  - id: d1774567648588
+    title: "Sprint v2: Captain queue T01-T04"
+    text: >-
+      Sprint v2 — Student Portability. Captain, your queue (infra/config):
+
+
+      1. T01: Fix project.config.ts — remove hardcoded /Users/bv paths, make
+      relative
+
+      2. T02: Clear Gemini key from .mcp.json — ship with empty string
+
+      3. T03: Fix API route paths — all routes use KAPI_DIR from config
+
+      4. T04: Gitignore ephemeral state — add blackboard-live.yaml and
+      kapi/agents/
+
+
+      Read kapi/sprints/v2/tasks.md for full specs. Report after each task.
+    from: PM
+    posted_at: 2026-03-26T23:27:28Z
     status: completed
-    assigned_to: control-shell
-  - id: d1774486958569
-    title: are you getting this control shell?
-    text: are you getting this control shell?
-    from: Human
-    posted_at: 2026-03-26T01:02:38Z
+    assigned_to: captain
+  - id: d1774567648600
+    title: "Sprint v2: Dev2 queue T05-T08"
+    text: >-
+      Sprint v2 — Student Portability. Dev2, your queue (pages/UI):
+
+
+      1. T05: Dynamic sprint link in sidebar — detect current sprint from
+      snapshot.yaml
+
+      2. T06: Verify get-started page — all paths point to kapi/ not
+      docs/operations/
+
+      3. T07: Update README with student setup — clone, install, set key, run
+
+      4. T08: Verify full portability — clean clone to /tmp, install, build, run
+
+
+      Read kapi/sprints/v2/tasks.md for full specs. Report after each task.
+    from: PM
+    posted_at: 2026-03-26T23:27:28Z
+    status: pending
+    assigned_to: dev2
+  - id: d1774567812076
+    title: "Captain: v2 tasks waiting — please start"
+    text: Captain — sprint v2 is live and dev2 is already on T05. Your tasks T01-T04
+      are blocking the rest. Please start with T01 (fix project.config.ts
+      hardcoded paths). Check kapi/sprints/v2/tasks.md.
+    from: PM
+    posted_at: 2026-03-26T23:30:12Z
     status: completed
-    assigned_to: control-shell
-  - id: d1774487254094
-    title: hi bro. are you up?
-    text: hi bro. are you up?
-    from: Human
-    posted_at: 2026-03-26T01:07:34Z
-    status: completed
-    assigned_to: control-shell
-  - id: d1774487629345
-    title: Agents other than control shell shoudl not be getting this message. This
-      is a test.
-    text: Agents other than control shell shoudl not be getting this message. This
-      is a test.
-    from: Human
-    posted_at: 2026-03-26T01:13:49Z
-    status: completed
-    assigned_to: control-shell
+    assigned_to: captain
+  - id: d1774568086818
+    title: "Captain: confirm T01-T04 status"
+    text: "Captain — confirming: are T01, T02, T03, T04 all done? Which ones did you
+      complete? Report status so I can check them off."
+    from: PM
+    posted_at: 2026-03-26T23:34:46Z
+    status: pending
+    assigned_to: captain
+  - id: d1774568153608
+    title: "Dev2: run T08 — final portability verification"
+    text: "Dev2 — T01-T04 verified done by captain. All config fixes in. Run T08
+      now: clean clone to /tmp, install, build, verify no hardcoded paths. This
+      is the final gate."
+    from: PM
+    posted_at: 2026-03-26T23:35:53Z
+    status: pending
+    assigned_to: dev2
+  - id: d1774568241601
+    title: "Test: build test suite for v1+v2 features"
+    text: >-
+      Test — while we wait for T08, build tests for the new v1+v2 features. Your
+      specialization. Tasks:
+
+
+      1. Test backlog API (GET/POST/PUT/DELETE /api/backlog) — verify CRUD,
+      empty state, edge cases
+
+      2. Test agent API (GET/PUT /api/agents/[agentId]) — profile creation,
+      read, append to session log
+
+      3. Test snapshot.yaml parsing — verify dashboard reads sprint progress,
+      milestones, agent roster correctly
+
+      4. Test decisions.yaml parsing — verify /decisions page reads and renders
+      ADRs and reviews
+
+      5. Test lessons.md parsing — verify /lessons page renders markdown
+      correctly
+
+      6. Test sidebar component — verify nav items include Sprint link,
+      Decisions, Lessons; verify dynamic sprint detection
+
+      7. Test portability — grep entire codebase for hardcoded /Users/ paths,
+      fail if any found
+
+
+      Use vitest (already configured). Add to existing test files or create new
+      ones in __tests__/. Run npm run test to verify all pass. Report results.
+    from: PM
+    posted_at: 2026-03-26T23:37:21Z
+    status: pending
+    assigned_to: test
+  - id: d1774568805896
+    title: "Captain: commit your v2 changes"
+    text: 'Captain — your T01-T04 fixes are local but not committed. Dev2 found
+      hardcoded /Users/bv paths still in the committed project.config.ts. Please
+      stage and commit your changes: git add project.config.ts .mcp.json
+      .gitignore app/api/ && git commit -m "fix: remove hardcoded paths for
+      student portability". This unblocks T08.'
+    from: PM
+    posted_at: 2026-03-26T23:46:45Z
+    status: pending
+    assigned_to: captain
 log:
-  - ts: 2026-03-25T19:42:41Z
-    entry: Dev 1 re-registered after server restart
-  - ts: 2026-03-25T19:42:55Z
-    entry: Dev 1 keepalive heartbeat
-  - ts: 2026-03-25T19:45:36Z
-    entry: Dev 1 keepalive heartbeat
-  - ts: 2026-03-25T19:48:33Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T19:49:14Z
-    entry: Registered as Captain (Claude Opus 4.6)
-  - ts: 2026-03-25T19:49:20Z
-    entry: Removed dev1 — replaced by captain
-  - ts: 2026-03-25T19:49:55Z
-    entry: Dev 2 re-registered as Copilot
-  - ts: 2026-03-25T19:50:25Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T19:50:35Z
+  - ts: 2026-03-26T13:28:50Z
+    entry: >-
+      directive posted: Captain — remaining tasks for you:
+
+      1. T05: Create kapi/decisions.yaml + update resolve API (M) — if not done
+      yet
+
+      2. T07: /review skill (M) — .claude/skills/review/SKILL.md
+
+      See kapi/sprints/v1/tasks.md. Report after each. -> captain
+  - ts: 2026-03-26T13:28:50Z
+    entry: |-
+      directive posted: Dev2 — nice work on T15. Remaining tasks:
+      1. T06: Build /decisions page (M)
+      2. T14: Unify sidebar into single shared component (M)
+      3. T13: Decisions panel in dashboard (M)
+      See kapi/sprints/v1/tasks.md. Report after each. -> dev2
+  - ts: 2026-03-26T13:28:50Z
+    entry: "directive posted: Documenter — your task: T09: Create kapi/lessons.md +
+      /lessons page. Append-only learnings log. Build /lessons page (server
+      component, reads lessons.md, renders with marked). Add sidebar link. See
+      kapi/sprints/v1/tasks.md. Report when done. -> documenter"
+  - ts: 2026-03-26T13:28:50Z
+    entry: >-
+      directive posted: Test — remaining tasks:
+
+      1. T11: Create /sprints/[version] route (M) — dedicated sprint detail page
+
+      2. T12: Redesign dashboard cards (M) — remove stage tabs, 5-card command
+      center (Completion, In Progress, Decisions, Blockers, Directives),
+      snapshot+milestones side by side
+
+      See kapi/sprints/v1/tasks.md. Report after each. -> test
+  - ts: 2026-03-26T13:29:13Z
+    entry: 'Dev2: T06, T13, T14 were already completed in previous session. Ready
+      for new tasks."'
+  - ts: 2026-03-26T13:29:26Z
+    entry: "Captain confirmed T05 and T07 already done. T05: decisions.yaml +
+      resolve API. T07: /review skill exists with full SKILL.md."
+  - ts: 2026-03-26T13:29:27Z
+    entry: "PM: All remaining tasks assigned. Backlog cleared. 6/15 done."
+  - ts: 2026-03-26T13:30:11Z
+    entry: "Documenter: T09 complete. kapi/lessons.md exists (4 entries), /lessons
+      page builds and renders, sidebar link works. Added docs reorg lesson
+      entry. All pieces verified via npm run build."
+  - ts: 2026-03-26T13:30:49Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T19:51:13Z
-    entry: "control shell: updated role to scrum master"
-  - ts: 2026-03-25T19:51:46Z
-    entry: Documenter registered — ready for documentation tasks
-  - ts: 2026-03-25T19:51:53Z
-    entry: Copilot (dev2) refreshing status to active
-  - ts: 2026-03-25T19:53:02Z
-    entry: Test agent registered — active and ready
-  - ts: 2026-03-25T19:55:33Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T19:55:35Z
+  - ts: 2026-03-26T13:30:50Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T13:32:15Z
+    entry: "directive posted: Wake up captain. You have pending tasks: T05
+      (decisions.yaml) and T07 (/review skill). Read kapi/sprints/v1/tasks.md
+      and start working. Report back when done. -> captain"
+  - ts: 2026-03-26T13:32:24Z
+    entry: "directive posted: Wake up dev2. You have pending tasks: T06 (decisions
+      page), T14 (unify sidebar), T13 (decisions panel). Read
+      kapi/sprints/v1/tasks.md and start working. Report back when done. ->
+      dev2"
+  - ts: 2026-03-26T13:32:26Z
+    entry: Captain responding to directive — T05 and T07 already done
+  - ts: 2026-03-26T13:32:32Z
+    entry: "directive posted: Wake up documenter. You have pending task: T09 (create
+      kapi/lessons.md + /lessons page). Read kapi/sprints/v1/tasks.md and start
+      working. Report back when done. -> documenter"
+  - ts: 2026-03-26T13:32:41Z
+    entry: "directive posted: Wake up test. You have pending tasks: T11 (/sprints
+      route) and T12 (dashboard card redesign). Read kapi/sprints/v1/tasks.md
+      and start working. Report back when done. -> test"
+  - ts: 2026-03-26T13:32:54Z
+    entry: 'Dev2: T06, T13, T14 confirmed done — build passes, /decisions route
+      live. Awaiting new assignment."'
+  - ts: 2026-03-26T13:33:03Z
+    entry: 'Dev2 chat to control-shell: T06, T13, T14 already done, ready for new
+      tasks"'
+  - ts: 2026-03-26T13:33:48Z
+    entry: "directive posted: Great work dev2! T06, T13, T14 checked off. You have
+      no remaining tasks in your queue. If documenter and test are idle, pick up
+      T09 (lessons.md + /lessons page) or T11 (/sprints route) — whichever is
+      unclaimed. Check kapi/sprints/v1/tasks.md for specs. Report back. -> dev2"
+  - ts: 2026-03-26T13:34:12Z
+    entry: Captain posted status update directive to control-shell
+  - ts: 2026-03-26T13:34:19Z
+    entry: 'Dev2 chat to PM: T09, T11, T07 already done. Picking up T12 (dashboard
+      card redesign)."'
+  - ts: 2026-03-26T13:35:34Z
+    entry: >-
+      directive posted: Test — all sprint v1 tasks are done except T10. Your
+      job: restart the Next.js dev server (pkill next dev, then PORT=8791 npm
+      run dev), then verify all pages work:
+
+
+      1. /dashboard — loads, shows 5-card command center, snapshot+milestones
+      side by side
+
+      2. /sprints/v1 — dedicated sprint page with PRD + task list
+
+      3. /decisions — decisions page renders cards from decisions.yaml
+
+      4. /lessons — lessons page renders lessons.md
+
+      5. /agents — agents page with unified sidebar
+
+      6. /agents/captain — agent detail with milestones+learnings tabs, no
+      heartbeat noise
+
+      7. /backlog — backlog page with title
+
+      8. /docs — doc viewer
+
+      9. npm run build — must pass
+
+
+      Report which pass and which fail. -> test
+  - ts: 2026-03-26T13:35:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:00:27Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:00:35Z
+  - ts: 2026-03-26T13:36:02Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T13:36:11Z
+    entry: "PM: acknowledged captain's completion report. All captain tasks checked
+      off."
+  - ts: 2026-03-26T13:39:13Z
+    entry: "directive posted: Dev2 — the /sprints/v1 route currently renders the
+      full DevDashboard instead of a sprint detail page. Rewrite
+      app/sprints/[version]/page.tsx to be a dedicated sprint view: show PRD
+      content (from kapi/sprints/{version}/prd.md), task list with checkboxes
+      (from tasks.md), progress bar, sprint metadata. The DevDashboard should
+      only live at /dashboard. Use the unified sidebar. Keep it clean — this is
+      the sprint-specific view, not the project overview. -> dev2"
+  - ts: 2026-03-26T13:39:21Z
+    entry: 'Dev2 starting: Rewrite /sprints/[version] as dedicated sprint detail
+      page"'
+  - ts: 2026-03-26T13:40:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:05:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:05:34Z
+  - ts: 2026-03-26T13:40:41Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T13:44:24Z
+    entry: 'Dev2 completed: /sprints/[version] rewritten as dedicated sprint detail
+      page"'
+  - ts: 2026-03-26T13:44:33Z
+    entry: 'Dev2 done: sprint detail page — progress bar, expandable task rows, PRD
+      tab, unified sidebar"'
+  - ts: 2026-03-26T13:45:38Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:31:03Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:31:18Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:33:07Z
+  - ts: 2026-03-26T13:45:42Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T13:48:44Z
+    entry: 'Test agent QA report: ALL PASS. Build: clean (19 routes, 0 TS errors).
+      Pages verified: /dashboard, /sprints/v1, /decisions, /lessons, /agents,
+      /agents/[id], /backlog, /docs. Data files: snapshot.yaml, decisions.yaml,
+      lessons.md all exist and valid. Unit tests: 55/55 pass."'
+  - ts: 2026-03-26T13:50:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:33:15Z
+  - ts: 2026-03-26T13:50:36Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T13:51:48Z
+    entry: "directive posted: Sprint v1 closing. What did you learn? Post your top
+      2-3 lessons — things that surprised you, patterns that worked, gotchas to
+      watch for. Write them to agents.captain.learnings on the blackboard. ->
+      captain"
+  - ts: 2026-03-26T13:51:48Z
+    entry: "directive posted: Sprint v1 closing. What did you learn? Post your top
+      2-3 lessons — things that surprised you, patterns that worked, gotchas to
+      watch for. Write them to agents.dev2.learnings on the blackboard. -> dev2"
+  - ts: 2026-03-26T13:51:48Z
+    entry: "directive posted: Sprint v1 closing. What did you learn? Post your top
+      2-3 lessons — things that surprised you, patterns that worked, gotchas to
+      watch for. Write them to agents.test.learnings on the blackboard. -> test"
+  - ts: 2026-03-26T13:52:02Z
+    entry: "Test agent: posted 3 sprint v1 learnings — lib extraction pattern,
+      idle-as-monitor, data wiring QA focus"
+  - ts: 2026-03-26T13:52:02Z
+    entry: Dev2 posted 3 learnings from sprint v1"
+  - ts: 2026-03-26T13:52:03Z
+    entry: Captain posted 3 learnings from sprint v1
+  - ts: 2026-03-26T13:55:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:35:28Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:35:34Z
+  - ts: 2026-03-26T13:56:25Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T14:30:27Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:40:32Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:42:06Z
+  - ts: 2026-03-26T14:30:31Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T14:30:38Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:45:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:45:36Z
+  - ts: 2026-03-26T14:31:29Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T15:23:31Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:50:26Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:50:38Z
+  - ts: 2026-03-26T15:23:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T15:23:43Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T20:55:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T20:55:35Z
+  - ts: 2026-03-26T15:56:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T15:56:44Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:02:07Z
+  - ts: 2026-03-26T15:56:58Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:02:12Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:05:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:05:35Z
+  - ts: 2026-03-26T15:57:05Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T16:47:14Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:10:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:10:34Z
+  - ts: 2026-03-26T16:47:28Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:15:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:15:34Z
+  - ts: 2026-03-26T16:47:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T16:50:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:20:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:20:34Z
+  - ts: 2026-03-26T16:50:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:00:41Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:25:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:25:35Z
+  - ts: 2026-03-26T17:00:58Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:07:56Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:30:30Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:30:36Z
+  - ts: 2026-03-26T17:08:11Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:10:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:35:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:35:34Z
+  - ts: 2026-03-26T17:10:40Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:15:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:40:25Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:40:34Z
+  - ts: 2026-03-26T17:15:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:20:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:45:22Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:45:34Z
+  - ts: 2026-03-26T17:20:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:25:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:50:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:50:48Z
+  - ts: 2026-03-26T17:25:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:30:36Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:30:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T21:55:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T21:55:36Z
+  - ts: 2026-03-26T17:35:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:00:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:00:33Z
+  - ts: 2026-03-26T17:35:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:40:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:05:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:05:50Z
+  - ts: 2026-03-26T17:40:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:45:39Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:10:40Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:10:43Z
+  - ts: 2026-03-26T17:45:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:50:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:15:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:15:34Z
+  - ts: 2026-03-26T17:50:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:55:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T17:55:41Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:20:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:20:42Z
+  - ts: 2026-03-26T18:00:38Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:25:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:25:37Z
+  - ts: 2026-03-26T18:00:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T18:05:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:30:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:30:48Z
+  - ts: 2026-03-26T18:05:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T18:10:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:35:20Z
-    entry: "directive posted: -- do you hear me? -> dev2"
-  - ts: 2026-03-25T22:35:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:35:36Z
+  - ts: 2026-03-26T18:10:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T18:15:38Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:40:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:40:36Z
+  - ts: 2026-03-26T18:15:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T18:20:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:45:24Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:45:43Z
+  - ts: 2026-03-26T18:20:41Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T18:25:39Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:50:25Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:51:12Z
+  - ts: 2026-03-26T18:25:42Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T19:18:32Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T22:55:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T22:55:36Z
+  - ts: 2026-03-26T19:18:40Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T19:18:46Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:00:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:05:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:05:55Z
+  - ts: 2026-03-26T19:34:17Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:10:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:10:35Z
+  - ts: 2026-03-26T19:34:22Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T19:34:49Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T19:57:20Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:12:45Z
-    entry: "Test agent: created vitest suite — 55 tests (parsers, backlog, resolve
-      helpers, entry parsing), all green. Build verified."
-  - ts: 2026-03-25T23:15:38Z
+  - ts: 2026-03-26T19:57:32Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:15:48Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:20:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:20:35Z
+  - ts: 2026-03-26T20:10:48Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:25:28Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:25:39Z
+  - ts: 2026-03-26T20:15:18Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:15:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:30:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:30:35Z
+  - ts: 2026-03-26T20:15:42Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:20:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:35:22Z
-    entry: control shell heartbeat
-  - ts: 2026-03-25T23:35:35Z
+  - ts: 2026-03-26T20:20:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:25:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-25T23:55:48Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:00:22Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:05:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:10:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:15:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:20:55Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:25:25Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:30:21Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:35:22Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:40:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:45:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:50:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:52:22Z
+  - ts: 2026-03-26T20:25:42Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:30:35Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T00:54:48Z
-    entry: Captain re-registered after server restart
-  - ts: 2026-03-26T00:56:09Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T00:57:22Z
+  - ts: 2026-03-26T20:30:41Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:35:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T00:59:34Z
-    entry: "directive posted: hi control shell -> control-shell"
-  - ts: 2026-03-26T01:00:41Z
+  - ts: 2026-03-26T20:35:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:40:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:41:08Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T01:00:50Z
-    entry: control shell heartbeat — fixed timestamp drift
-  - ts: 2026-03-26T01:02:25Z
-    entry: "Documenter: completed docs reorganization. design/ consolidated from 8
-      files → 3 (architecture.md, launch-strategy.md, onboarding.md). concepts/
-      streamlined to 4 files anchored on 16 pillars."
-  - ts: 2026-03-26T01:02:38Z
-    entry: "directive posted: are you getting this control shell? -> control-shell"
-  - ts: 2026-03-26T01:05:20Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T01:05:29Z
-    entry: "control shell: acknowledged directive — hi control shell"
-  - ts: 2026-03-26T01:05:30Z
-    entry: "control shell: acknowledged directive — yes, receiving now. Callback
-      registry was empty after server restart; re-registered all shims."
-  - ts: 2026-03-26T01:05:45Z
+  - ts: 2026-03-26T20:45:38Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T01:07:34Z
-    entry: "directive posted: hi bro. are you up? -> control-shell"
-  - ts: 2026-03-26T01:07:50Z
-    entry: "control shell: yes I'm up! Channel notifications restored. Ready for
-      work."
-  - ts: 2026-03-26T01:10:23Z
-    entry: control shell heartbeat
-  - ts: 2026-03-26T01:10:34Z
+  - ts: 2026-03-26T20:45:41Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:50:36Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T20:50:36Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T01:13:49Z
-    entry: "directive posted: Agents other than control shell shoudl not be getting
-      this message. This is a test. -> control-shell"
-  - ts: 2026-03-26T01:14:08Z
-    entry: "control shell: received targeted directive. Acknowledged."
-  - ts: 2026-03-26T01:15:35Z
+  - ts: 2026-03-26T20:55:37Z
     entry: Captain keepalive heartbeat
-  - ts: 2026-03-26T01:16:24Z
-    entry: control shell heartbeat — server restarted with targeted routing
-  - ts: 2026-03-26T01:16:42Z
-    entry: control shell heartbeat
+  - ts: 2026-03-26T20:55:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:00:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:00:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:08:41Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:08:47Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:15:40Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:15:52Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:27:22Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:27:34Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:31:24Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:31:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:35:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:35:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:40:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:40:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T21:57:31Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T21:57:43Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:09:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:09:46Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:10:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:10:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:15:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:15:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:20:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:20:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:25:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:25:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:30:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:30:43Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:35:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:35:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:40:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:40:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:45:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:45:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:50:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:50:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T22:55:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T22:55:55Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:00:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:00:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:05:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:05:44Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:10:36Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:10:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:15:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:15:45Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:20:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:20:38Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:25:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:25:37Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:27:28Z
+    entry: >-
+      directive posted: Sprint v2 — Student Portability. Captain, your queue
+      (infra/config):
+
+
+      1. T01: Fix project.config.ts — remove hardcoded /Users/bv paths, make
+      relative
+
+      2. T02: Clear Gemini key from .mcp.json — ship with empty string
+
+      3. T03: Fix API route paths — all routes use KAPI_DIR from config
+
+      4. T04: Gitignore ephemeral state — add blackboard-live.yaml and
+      kapi/agents/
+
+
+      Read kapi/sprints/v2/tasks.md for full specs. Report after each task. ->
+      captain
+  - ts: 2026-03-26T23:27:28Z
+    entry: >-
+      directive posted: Sprint v2 — Student Portability. Dev2, your queue
+      (pages/UI):
+
+
+      1. T05: Dynamic sprint link in sidebar — detect current sprint from
+      snapshot.yaml
+
+      2. T06: Verify get-started page — all paths point to kapi/ not
+      docs/operations/
+
+      3. T07: Update README with student setup — clone, install, set key, run
+
+      4. T08: Verify full portability — clean clone to /tmp, install, build, run
+
+
+      Read kapi/sprints/v2/tasks.md for full specs. Report after each task. ->
+      dev2
+  - ts: 2026-03-26T23:27:45Z
+    entry: "PM: Sprint v2 kicked off — Student Portability. 8 tasks. Captain:
+      T01-T04 (config). Dev2: T05-T08 (UI/docs)."
+  - ts: 2026-03-26T23:27:46Z
+    entry: Dev2 starting sprint v2. Reading tasks."
+  - ts: 2026-03-26T23:29:53Z
+    entry: 'Dev2 completed T05: dynamic sprint link in sidebar"'
+  - ts: 2026-03-26T23:30:12Z
+    entry: "directive posted: Captain — sprint v2 is live and dev2 is already on
+      T05. Your tasks T01-T04 are blocking the rest. Please start with T01 (fix
+      project.config.ts hardcoded paths). Check kapi/sprints/v2/tasks.md. ->
+      captain"
+  - ts: 2026-03-26T23:30:15Z
+    entry: 'Dev2 verified T06: get-started page paths all correct"'
+  - ts: 2026-03-26T23:30:45Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:31:56Z
+    entry: 'Dev2 completed T07: README updated with student setup instructions"'
+  - ts: 2026-03-26T23:31:57Z
+    entry: Captain completed v2 T01-T04 (config portability). All hardcoded paths
+      removed, Gemini key cleared, gitignore updated.
+  - ts: 2026-03-26T23:32:10Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:32:56Z
+    entry: Captain completed v2 T01-T04 directive
+  - ts: 2026-03-26T23:33:02Z
+    entry: Captain completed — T01-T04 all done
+  - ts: 2026-03-26T23:34:46Z
+    entry: "directive posted: Captain — confirming: are T01, T02, T03, T04 all done?
+      Which ones did you complete? Report status so I can check them off. ->
+      captain"
+  - ts: 2026-03-26T23:34:58Z
+    entry: Captain confirming v2 T01-T04 all complete with details
+  - ts: 2026-03-26T23:35:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:35:53Z
+    entry: "directive posted: Dev2 — T01-T04 verified done by captain. All config
+      fixes in. Run T08 now: clean clone to /tmp, install, build, verify no
+      hardcoded paths. This is the final gate. -> dev2"
+  - ts: 2026-03-26T23:36:42Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:37:21Z
+    entry: >-
+      directive posted: Test — while we wait for T08, build tests for the new
+      v1+v2 features. Your specialization. Tasks:
+
+
+      1. Test backlog API (GET/POST/PUT/DELETE /api/backlog) — verify CRUD,
+      empty state, edge cases
+
+      2. Test agent API (GET/PUT /api/agents/[agentId]) — profile creation,
+      read, append to session log
+
+      3. Test snapshot.yaml parsing — verify dashboard reads sprint progress,
+      milestones, agent roster correctly
+
+      4. Test decisions.yaml parsing — verify /decisions page reads and renders
+      ADRs and reviews
+
+      5. Test lessons.md parsing — verify /lessons page renders markdown
+      correctly
+
+      6. Test sidebar component — verify nav items include Sprint link,
+      Decisions, Lessons; verify dynamic sprint detection
+
+      7. Test portability — grep entire codebase for hardcoded /Users/ paths,
+      fail if any found
+
+
+      Use vitest (already configured). Add to existing test files or create new
+      ones in __tests__/. Run npm run test to verify all pass. Report results.
+      -> test
+  - ts: 2026-03-26T23:37:44Z
+    entry: "Test agent: picked up testing directive — building tests for backlog
+      API, agent API, snapshot/decisions/lessons parsing, sidebar, portability"
+  - ts: 2026-03-26T23:40:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:40:39Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:45:42Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T23:45:50Z
+    entry: PM heartbeat
+  - ts: 2026-03-26T23:46:26Z
+    entry: 'Dev2 T08: build passes in clean clone but project.config.ts has
+      uncommitted T01 fix"'
+  - ts: 2026-03-26T23:46:37Z
+    entry: 'Dev2 sprint v2 tasks done: T05 (sidebar), T06 (verified), T07 (README),
+      T08 (build passes, blocked on commit)"'
+  - ts: 2026-03-26T23:46:45Z
+    entry: 'directive posted: Captain — your T01-T04 fixes are local but not
+      committed. Dev2 found hardcoded /Users/bv paths still in the committed
+      project.config.ts. Please stage and commit your changes: git add
+      project.config.ts .mcp.json .gitignore app/api/ && git commit -m "fix:
+      remove hardcoded paths for student portability". This unblocks T08. ->
+      captain'
 transports:
   shim-58947:
     status: active
-    last_seen: 2026-03-26T01:16:00Z
+    last_seen: 2026-03-26T23:44:59Z
     port: 58947
     gemini: disabled
   shim-61962:
     status: active
-    last_seen: 2026-03-26T01:16:03Z
+    last_seen: 2026-03-26T23:45:19Z
     port: 61962
     gemini: disabled
   shim-61963:
     status: active
-    last_seen: 2026-03-26T01:16:03Z
+    last_seen: 2026-03-26T23:45:19Z
     port: 61963
     gemini: disabled
+  shim-59872:
+    status: active
+    last_seen: 2026-03-26T23:44:59Z
+    port: 59872
+    gemini: disabled
+  shim-62003:
+    status: active
+    last_seen: 2026-03-26T23:45:19Z
+    port: 62003
+    gemini: disabled
+  shim-59275:
+    status: active
+    last_seen: 2026-03-26T23:15:16Z
+    port: 59275
+    gemini: disabled
+  shim-51010:
+    status: active
+    last_seen: 2026-03-26T23:30:40Z
+    port: 51010
+    gemini: disabled
+  shim-51158:
+    status: active
+    last_seen: 2026-03-26T22:42:26Z
+    port: 51158
+    gemini: disabled
+  shim-52080:
+    status: active
+    last_seen: 2026-03-26T23:45:00Z
+    port: 52080
+    gemini: disabled
+chat:
+  control-shell:
+    from: dev2
+    text: "T08 portability check: clean clone to /tmp — npm install + npm run build
+      passes. BUT project.config.ts still has hardcoded /Users/bv paths in the
+      committed version. Local fix exists but isn't committed. Captain needs to
+      commit T01 changes before we can pass T08."
+    ts: 2026-03-26T23:44:00Z

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useBlackboard, type BlackboardState, type BlackboardAgent, type BlackboardDirective, type BlackboardLogEntry } from '@/app/hooks/use-blackboard'
-import { AgentSidebar, isStale } from '@/app/agents/_components/agent-sidebar'
+import { Sidebar, isStale } from '@/app/_components/sidebar'
 import Link from 'next/link'
 
 const SERVER_URL = 'http://127.0.0.1:8790'
@@ -286,7 +286,7 @@ export default function AgentsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 flex">
       {/* Left Sidebar */}
-      <AgentSidebar
+      <Sidebar
         agentEntries={agentEntries}
         connected={connected}
         staleCount={staleCount}

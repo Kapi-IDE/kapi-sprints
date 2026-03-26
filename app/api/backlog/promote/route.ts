@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { OPS_DIR } from '../../../../project.config'
+import { KAPI_DIR } from '../../../../project.config'
 
 // POST /api/backlog/promote
 // Promotes a backlog inbox item to an Active Blocker on the blackboard.
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'item required' }, { status: 400 })
     }
 
-    const boardPath = path.join(OPS_DIR, 'blackboard/board.md')
+    const boardPath = path.join(KAPI_DIR, 'board.md')
     let board = await fs.readFile(boardPath, 'utf-8')
 
     const ts = new Date()

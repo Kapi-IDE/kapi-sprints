@@ -99,6 +99,19 @@ Write two files:
 - Explicit `Depends:` when a task requires another to be done first
 - If a task touches more than 3 files, split it
 
+## Task Allocation
+
+When assigning tasks to agents, follow these principles:
+
+1. **Specialization over round-robin** — assign tasks similar to what the agent has done before. This builds in-context learning and lets agents develop expertise.
+2. **Read agent profiles** — check `kapi/agents/{name}.md` for each agent's history and capabilities before assigning.
+3. **Common specialization tracks**:
+   - **Infra/data agents**: APIs, data layer, server-side logic, skills, YAML schemas
+   - **UI/page agents**: pages, components, sidebar, dashboard rendering, styling
+   - **Test agents**: test suites, QA gates, validation
+4. **Balance load** — if one track has too many tasks, split the heaviest task rather than cross-assigning to the wrong specialization.
+5. **Use directed directives** — assign via blackboard `POST /directive` with `assigned_to` so only the target agent receives the notification.
+
 ## After Writing
 
 Update `docs/operations/blackboard/board.md`:

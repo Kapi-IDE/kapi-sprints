@@ -77,6 +77,7 @@ Per-agent MCP stdio proxy. Claude Code spawns one per session.
 | `/preflight` | Pre-sprint readiness check | Read layers from config |
 | `/scorecard` | Quality layer audit | Read layers from config |
 | `/walkthrough` | Sprint review narrative | Already generic |
+| `/review` | Appends review record to `decisions.yaml` | Already generic |
 | `/checkpoint` | Session state to blackboard | Universal |
 | `/resume` | Restore context from checkpoint | Universal |
 
@@ -110,16 +111,19 @@ Scorecard reads user-defined layers from config, not hardcoded layers:
 
 Next.js 16 + React 19 + Tailwind 4. Dark theme (zinc/amber palette).
 
-### Views
+### Pages
 
-| View | What it shows |
-|------|-------------|
-| **Overview** | Sprint velocity, QA quality, blockers, decisions, findings, queue |
-| **Build** | Task blocks with checkboxes (persists to tasks.md) |
-| **Agents** | Live agent cards, directive kanban, activity stream |
-| **Stream** | Filterable timeline of all blackboard entries |
-| **Docs** | Markdown + Mermaid rendering of any file in docs/ |
-| **Backlog** | Inbox items and queued work |
+| Route | What it shows | Reads from |
+|-------|-------------|------------|
+| `/dashboard` | 5-card command center (score, blockers, decisions, findings, directives) + snapshot + milestones | `snapshot.yaml`, `decisions.yaml`, `board.md`, `backlog.md` |
+| `/agents` | Live agent cards, directive kanban, activity stream, protocol reference | `blackboard-live.yaml` (via WebSocket) |
+| `/agents/[id]` | Agent detail: milestones, learnings, activity tabs | `blackboard-live.yaml` |
+| `/decisions` | ADR cards + agent review cards with status badges | `decisions.yaml` |
+| `/lessons` | Append-only learnings log rendered as prose | `lessons.md` |
+| `/backlog` | Inbox items and queued work | `backlog.md` |
+| `/board` | Blackboard view: blockers, decisions, findings, agent status | `board.md` |
+| `/sprints/[v]` | Sprint detail: progress bar, task blocks with expand, PRD tab | `sprints/{v}/tasks.md`, `prd.md` |
+| `/docs/[...path]` | Markdown + Mermaid rendering of any file in docs/ | Any `.md` file |
 
 ### Data Flow
 

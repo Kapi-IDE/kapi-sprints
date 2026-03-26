@@ -1,0 +1,34 @@
+# decisions.yaml — Architecture Decision Records + Agent Reviews
+#
+# Schema:
+#   - id: ADR-NNN or REV-NNN
+#     type: adr | review
+#     title: Short description
+#     status: proposed | accepted | deprecated | superseded
+#     date: YYYY-MM-DD
+#     context: Why was this decision needed?
+#     decision: What was decided?
+#     consequences: What are the trade-offs?
+#     # review-specific fields:
+#     agent: (agent name)
+#     task: (task id)
+#     result: approve | reject | edit
+#     category: (e.g. code-quality, architecture, testing)
+#     notes: (reviewer notes)
+
+decisions:
+  - id: ADR-001
+    type: adr
+    title: Use file-based blackboard over message bus
+    status: accepted
+    date: "2026-03-25"
+    context: >
+      Multiple Claude Code terminals need to coordinate on the same codebase.
+      Options considered: direct message passing, event bus, shared database, file-based blackboard.
+    decision: >
+      Use a file-based blackboard (board.md + entries/) backed by a YAML live state file.
+      Agents read and write to shared files, coordinated by a lightweight Bun server.
+    consequences: >
+      Trades real-time performance for maximum simplicity, auditability, and resilience.
+      All state is git-trackable, human-readable, and survives crashes.
+      No external infrastructure required beyond the filesystem.

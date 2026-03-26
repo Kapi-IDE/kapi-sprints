@@ -13,6 +13,7 @@ A multiagent sprint coordination system for Claude Code teams. Two subsystems: *
 /dev v2          → Implement tasks (TDD): pick next task, write test, implement, verify
 /test v2         → QA gate: build, lint, code review, push check
 /post            → Post to blackboard (finding, decision, blocker, etc.)
+/review          → Rate agent work: approve/reject/edit → appends to decisions.yaml
 /walkthrough v2  → Generate sprint review: narrative of what was built
 ```
 
@@ -20,23 +21,32 @@ A multiagent sprint coordination system for Claude Code teams. Two subsystems: *
 
 ```
 kapi/                          ← Live sprint state (project.config.ts opsDir)
-├── blackboard-live.yaml       ← Blackboard source of truth (managed by server)
+├── snapshot.yaml              ← "Where are we?" — PM-curated status → /dashboard
+├── decisions.yaml             ← "What did we decide?" — ADRs + reviews → /decisions
+├── backlog.md                 ← "What's next?" — ## Inbox / ## Done → /backlog
+├── board.md                   ← "What's happening?" — blockers, findings → /board
+├── lessons.md                 ← "What did we learn?" — append-only log → /lessons
+├── blackboard-live.yaml       ← Agent coordination (managed by server) → /agents
 ├── entries/                   ← One file per finding/decision/milestone (frontmatter + body)
-├── sprints/{version}/         ← Active sprint tasks.md + prd.md
-├── agents/                    ← Agent profile .md files (auto-created)
-├── backlog.md                 ← Unscheduled ideas (## Inbox section)
-└── status.md                  ← Demo-safe features, known gaps, history
+├── sprints/{version}/         ← Active sprint tasks.md + prd.md → /sprints/v1
+└── agents/                    ← Agent profile .md files (auto-created)
 
 docs/                          ← Documentation (see docs/README.md)
-├── concepts/                  ← Vision, blackboard pattern, principles
-├── foundation/                ← Product definition (vision, market, spec)
-├── design/                    ← Architecture decisions, OSS plans
-├── history/                   ← Archived sprint records (v1, v2)
-└── references/                ← MAS research, book, classical references
+├── concepts/                  ← 16 pillars, vision, blackboard, HITL, backwards build
+├── design/                    ← Architecture, launch strategy, onboarding
+└── history/                   ← Archived sprint records (v1, v2)
 
-app/[version]/page.tsx         ← Server component: reads all .md files
-app/[version]/_components/     ← DevDashboard.tsx + RightPanel.tsx
-project.config.ts              ← Project name, initials, description
+app/                           ← Next.js 16 dashboard
+├── dashboard/                 ← 5-card command center (reads snapshot + decisions + board)
+├── agents/                    ← Live agent cards, directive kanban
+├── decisions/                 ← ADR + review cards from decisions.yaml
+├── lessons/                   ← Append-only learnings from lessons.md
+├── sprints/[version]/         ← Sprint detail: progress bar, task blocks, PRD
+├── backlog/                   ← Inbox items
+├── board/                     ← Blackboard view
+├── _components/sidebar.tsx    ← Unified sidebar (shared across all pages)
+└── docs/                      ← Markdown + Mermaid viewer
+project.config.ts              ← Project name, initials, opsDir path
 ```
 
 ## Blackboard Posting

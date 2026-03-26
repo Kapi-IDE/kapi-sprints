@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useBlackboard, type BlackboardAgent } from '@/app/hooks/use-blackboard'
-import { AgentSidebar, isStale } from '@/app/agents/_components/agent-sidebar'
-import type { Snapshot } from './page'
+import { Sidebar, isStale } from '@/app/_components/sidebar'
+import type { Snapshot, DecisionRecord } from './page'
 
 const SERVER_URL = 'http://127.0.0.1:8790'
 
@@ -169,7 +169,7 @@ function DetailPanel({ items, empty, emptyText }: { items: string[]; empty?: str
 
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
-export function DashboardView({ blockers, decisions, findings, status, inboxCount, sprints, snapshot }: {
+export function DashboardView({ blockers, decisions, findings, status, inboxCount, sprints, snapshot, decisionRecords }: {
   blockers: string[]
   decisions: string[]
   findings: string[]
@@ -177,6 +177,7 @@ export function DashboardView({ blockers, decisions, findings, status, inboxCoun
   inboxCount: number
   sprints: { id: string; hasTasks: boolean }[]
   snapshot: Snapshot | null
+  decisionRecords?: DecisionRecord[]
 }) {
   const { state, connected } = useBlackboard()
   const [sweeping, setSweeping] = useState(false)
@@ -226,12 +227,13 @@ export function DashboardView({ blockers, decisions, findings, status, inboxCoun
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-      <AgentSidebar
+      <Sidebar
         agentEntries={agentEntries}
         connected={connected}
         staleCount={staleCount}
         onSweep={sweepStale}
         sweeping={sweeping}
+        currentSprint={snapshot?.sprint?.id ?? activeSprint?.id}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -330,6 +332,41 @@ export function DashboardView({ blockers, decisions, findings, status, inboxCoun
               )}
             </section>
           </div>
+
+          {/* Key Decisions (from decisions.yaml) */}
+          {(decisionRecords ?? []).length > 0 && (
+            <section className="rounded-xl bg-zinc-900 border border-zinc-800 px-5 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.13em] text-zinc-500 font-semibold flex-1">
+                  Key Decisions ({(decisionRecords ?? []).length})
+                </h2>
+                <Link href="/decisions" className="text-[10px] text-emerald-400 hover:text-emerald-300">
+                  View all &rarr;
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {(decisionRecords ?? []).slice(0, 5).map(d => (
+                  <div key={d.id} className="flex items-start gap-3 pb-3 border-b border-zinc-800/30 last:border-0 last:pb-0">
+                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md border shrink-0 mt-0.5 ${
+                      d.type === 'adr'
+                        ? (d.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' : 'bg-amber-500/10 text-amber-400 border-amber-500/25')
+                        : (d.result === 'approve' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                          : d.result === 'reject' ? 'bg-red-500/10 text-red-400 border-red-500/25'
+                          : 'bg-amber-500/10 text-amber-400 border-amber-500/25')
+                    }`}>
+                      {d.type === 'adr' ? d.status ?? 'proposed' : d.result ?? 'review'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-zinc-200 font-medium">{d.title}</p>
+                      {d.context && <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2">{d.context}</p>}
+                      {d.notes && <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2">{d.notes}</p>}
+                    </div>
+                    <span className="text-[10px] text-zinc-600 shrink-0">{d.date}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Sprints + Backlog */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

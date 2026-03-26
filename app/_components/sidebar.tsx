@@ -11,8 +11,6 @@ export function isStale(agent: BlackboardAgent): boolean {
   return Date.now() - new Date(lastSeen).getTime() > STALE_MS
 }
 
-const SERVER_URL = 'http://127.0.0.1:8790'
-
 function ConnectionBadge({ connected }: { connected: boolean }) {
   return (
     <span className={`flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-full ${
@@ -24,52 +22,64 @@ function ConnectionBadge({ connected }: { connected: boolean }) {
   )
 }
 
-export function AgentSidebar({ agentEntries, connected, staleCount, onSweep, sweeping, activeAgentId }: {
+function getNavItems(currentSprint?: string) {
+  const sprintHref = currentSprint ? `/sprints/${currentSprint}` : '/sprints/v1'
+  const sprintLabel = currentSprint ? `Sprint ${currentSprint}` : 'Sprint'
+  return [
+    { href: '/dashboard',  icon: '\u25C8', label: 'Dashboard' },
+    { href: sprintHref,    icon: '\u25B7', label: sprintLabel },
+    { href: '/backlog',    icon: '\u25A1', label: 'Backlog' },
+    { href: '/decisions',  icon: '\u25C7', label: 'Decisions' },
+    { href: '/lessons',    icon: '\u25CB', label: 'Lessons' },
+    { href: '/docs',       icon: '\u25FB', label: 'Docs' },
+  ]
+}
+
+export function Sidebar({ agentEntries, connected, staleCount, onSweep, sweeping, activeAgentId, activePage, currentSprint }: {
   agentEntries: [string, BlackboardAgent][]
   connected: boolean
   staleCount: number
   onSweep: () => void
   sweeping: boolean
   activeAgentId?: string
+  activePage?: string
+  currentSprint?: string
 }) {
+  const NAV_ITEMS = getNavItems(currentSprint)
   return (
     <aside className="w-[196px] shrink-0 border-r border-zinc-800 flex flex-col bg-zinc-950 overflow-y-auto">
       {/* Header */}
       <div className="px-3 py-3.5 border-b border-zinc-800/60">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-950/40 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <span className="text-emerald-400 text-xs font-bold">BB</span>
+            <span className="text-emerald-400 text-xs font-bold">KS</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-zinc-100 truncate">Agents</p>
-            <p className="text-[10px] text-zinc-500">Blackboard coordination</p>
+            <p className="text-sm font-semibold text-zinc-100 truncate">Kapi Sprints</p>
+            <p className="text-[10px] text-zinc-500">Multi-agent coordination</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
       <div className="border-b border-zinc-800/40 py-1.5">
-        <Link
-          href="/dashboard"
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100 transition-colors"
-        >
-          <span className="shrink-0 text-[10px]">&#x25C8;</span>
-          <span className="flex-1">Dashboard</span>
-        </Link>
-        <Link
-          href="/backlog"
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100 transition-colors"
-        >
-          <span className="shrink-0 text-[10px]">&#x25A1;</span>
-          <span className="flex-1">Backlog</span>
-        </Link>
-        <Link
-          href="/docs"
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100 transition-colors"
-        >
-          <span className="shrink-0 text-[10px]">&#x25FB;</span>
-          <span className="flex-1">Docs</span>
-        </Link>
+        {NAV_ITEMS.map(item => {
+          const isActive = activePage === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                isActive
+                  ? 'bg-zinc-800 text-zinc-100'
+                  : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-100'
+              }`}
+            >
+              <span className="shrink-0 text-[10px]">{item.icon}</span>
+              <span className={`flex-1 ${isActive ? 'font-medium' : ''}`}>{item.label}</span>
+            </Link>
+          )
+        })}
       </div>
 
       {/* Team */}

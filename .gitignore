@@ -23,6 +23,10 @@
 # production
 /build
 
+# ephemeral blackboard state (recreated on server start)
+kapi/blackboard-live.yaml
+kapi/agents/
+
 # misc
 .DS_Store
 *.pem

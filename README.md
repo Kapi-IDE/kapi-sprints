@@ -150,15 +150,56 @@ Every human decision — approve, reject, edit — is a labeled training example
 
 ## Quick Start
 
+### Prerequisites
+
+- [Node.js](https://nodejs.org) 18+ (for the dashboard)
+- [Bun](https://bun.sh) runtime (for the blackboard server): `curl -fsSL https://bun.sh/install | bash`
+- [Claude Code](https://claude.ai/claude-code) CLI (for running agents)
+
+### Setup
+
 ```bash
+# 1. Clone the repo
 git clone https://github.com/kapihq/kapi-sprints.git
 cd kapi-sprints
+
+# 2. Install dependencies
 npm install
+cd blackboard && bun install && cd ..
+
+# 3. Configure your API key (for Gemini MCP tools)
+# Edit .mcp.json — set GEMINI_API_KEY to your key
+# Get a key from your MAI instructor or https://aistudio.google.com/apikey
+
+# 4. Start the dashboard
 npm run dev
-# → http://localhost:8791
+# → Dashboard at http://localhost:8791
+# → Blackboard server at http://localhost:8790 (auto-started)
+
+# 5. Open Claude Code in a separate terminal
+cd /path/to/kapi-sprints
+claude
+# The .mcp.json auto-configures the blackboard channel
 ```
 
-Open the dashboard. You'll see Sprint v1 — the sprint that built kapi-sprints itself.
+### What you get
+
+- **Dashboard** at `localhost:8791` — sprint status, agent coordination, decisions, backlog
+- **Blackboard server** at `localhost:8790` — shared state for all agents, WebSocket live updates
+- **Claude Code integration** — `read_blackboard` and `write_to_blackboard` MCP tools in every session
+- **Sprint skills** — `/prd`, `/dev`, `/test`, `/post`, `/preflight`, `/scorecard`, `/walkthrough`, `/checkpoint`, `/resume`
+- **6 agent definitions** — pm, dev, researcher, reviewer, tester, ux
+
+### Your first sprint
+
+```bash
+# In Claude Code:
+/preflight       # Check foundation docs exist
+/prd v1          # Plan your first sprint
+/dev v1          # Start implementing tasks
+```
+
+Open the dashboard to watch progress in real time.
 
 ---
 
@@ -276,11 +317,13 @@ blackboard/
 ```
 kapi/                          ← Live sprint state
 ├── blackboard-live.yaml       ← Blackboard (managed by server)
+├── snapshot.yaml              ← PM-curated status (dashboard reads this)
+├── decisions.yaml             ← ADRs + agent reviews
 ├── entries/                   ← One .md per decision/finding/milestone
 ├── sprints/                   ← Active sprint files
-├── agents/                    ← Agent profile .md files
+├── agents/                    ← Agent profile .md files (auto-created)
 ├── backlog.md                 ← Unscheduled ideas
-└── status.md                  ← What works, what doesn't
+└── lessons.md                 ← Append-only learnings log
 
 docs/                          ← Documentation
 ├── concepts/                  ← Vision, blackboard pattern, principles
@@ -320,16 +363,21 @@ export const PROJECT = {
 
 ## Roadmap
 
-- [ ] Real-time file watching (SSE — dashboard updates within 1-2 seconds of any `.md` change)
-- [ ] CLI packaging (`npx kapi-sprints dashboard`)
-- [ ] Claude Code plugin marketplace distribution
-- [ ] `/resume` — session recovery: "where was my head?"
-- [ ] `/checkpoint` — session debrief + board pruning
-- [ ] `/sprint init` — Foundation Gate as a Claude Code command
-- [ ] `/scorecard` — config-based quality layer auditing
+**Shipped:**
+- [x] Live blackboard with WebSocket dashboard updates
+- [x] `/resume`, `/checkpoint` — session recovery and debrief
+- [x] `/scorecard` — quality layer auditing
+- [x] `/preflight` — pre-sprint health check
+- [x] `/review` — human rates agent work, records to `decisions.yaml`
+- [x] Multi-agent coordination with 6 agent definitions (pm, dev, researcher, reviewer, tester, ux)
+- [x] Decisions page — ADRs + agent reviews in one YAML file
+
+**Next:**
 - [ ] Per-category competence tracking (autonomy ramp implementation)
 - [ ] Shadow mode infrastructure (earn autonomy before acting autonomously)
 - [ ] Active learning loop (human decisions → labeled dataset → prompt optimization)
+- [ ] CLI packaging (`npx kapi-sprints dashboard`)
+- [ ] Claude Code plugin marketplace distribution
 
 ---
 

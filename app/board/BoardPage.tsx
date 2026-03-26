@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useBlackboard, type BlackboardAgent } from '@/app/hooks/use-blackboard'
-import { AgentSidebar, isStale } from '@/app/agents/_components/agent-sidebar'
+import { Sidebar, isStale } from '@/app/_components/sidebar'
 
 const SERVER_URL = 'http://127.0.0.1:8790'
 
@@ -210,7 +210,7 @@ export function BoardPageView({ section, title }: { section: string; title: stri
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-      <AgentSidebar
+      <Sidebar
         agentEntries={agentEntries}
         connected={connected}
         staleCount={staleCount}

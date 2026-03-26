@@ -167,7 +167,7 @@ export default function GetStartedPage() {
         <span className="text-zinc-800">/</span>
         <span className="text-xs font-mono text-zinc-300">get started</span>
         <div className="ml-auto flex items-center gap-4">
-          <Link href="/v1" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-mono">
+          <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-mono">
             → open dashboard
           </Link>
         </div>
@@ -191,9 +191,9 @@ export default function GetStartedPage() {
           </p>
           <div className="pt-2">
             <code className="text-sm bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-emerald-400 font-mono">
-              /sprint init
+              /preflight
             </code>
-            <span className="text-zinc-600 text-sm ml-3">— run this once, before everything else</span>
+            <span className="text-zinc-600 text-sm ml-3">— run this first, then <code className="text-zinc-400">/prd v1</code> to plan</span>
           </div>
         </div>
 
@@ -201,12 +201,12 @@ export default function GetStartedPage() {
         <section className="space-y-6">
           <h2 className="text-lg font-semibold text-zinc-100">The Foundation Gate</h2>
           <p className="text-sm text-zinc-400">
-            <code className="font-mono text-zinc-300">/sprint init</code> won&apos;t let you create a sprint until three foundation docs exist.
+            <code className="font-mono text-zinc-300">/preflight</code> checks your foundation docs before planning a sprint.
             Missing docs get generated conversationally — takes about 15 minutes total.
           </p>
 
           <div className="flex flex-col items-center gap-0 py-4">
-            <FlowStep label="/sprint init" />
+            <FlowStep label="/preflight" />
             <FlowStep label="Foundation check" sub="Scans for 3 required docs" />
             <div className="grid grid-cols-3 gap-4 w-full max-w-xl py-2">
               <div className="flex flex-col items-center gap-1 text-center">
@@ -298,7 +298,7 @@ export default function GetStartedPage() {
           <div>
             <h2 className="text-lg font-semibold text-zinc-100">What gets generated</h2>
             <p className="text-sm text-zinc-400 mt-1">
-              After the foundation gate passes, <code className="font-mono text-zinc-300">/sprint init</code> scaffolds everything you need.
+              After the foundation gate passes, <code className="font-mono text-zinc-300">/prd v1</code> scaffolds your first sprint.
             </p>
           </div>
           <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
@@ -307,12 +307,12 @@ export default function GetStartedPage() {
             </div>
             <div className="px-5 py-4 font-mono text-xs space-y-2">
               {[
-                'kapi-sprints.config.md',
+                'project.config.ts',
                 'docs/foundation/vision.md',
                 'docs/foundation/market.md',
                 'docs/foundation/spec.md',
-                'docs/operations/sprints/v1/',
-                'docs/operations/blackboard/',
+                'kapi/sprints/v1/',
+                'kapi/board.md',
               ].map((path) => (
                 <div key={path} className="flex items-center gap-3">
                   <span className="text-emerald-500">✓</span>
@@ -335,7 +335,7 @@ export default function GetStartedPage() {
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Setup — run once</span>
             </div>
             {[
-              { cmd: '/sprint init',  desc: 'Foundation gate + project scaffold' },
+              { cmd: '/preflight',  desc: 'Foundation gate — checks docs exist and are ready' },
             ].map(({ cmd, desc }) => (
               <div key={cmd} className="flex items-center gap-4 px-5 py-3">
                 <code className="text-xs font-mono text-emerald-400 w-44 shrink-0">{cmd}</code>
@@ -381,10 +381,10 @@ export default function GetStartedPage() {
           <p className="text-zinc-300 text-sm font-semibold">Ready? Here&apos;s the sequence.</p>
           <div className="space-y-3">
             {[
-              { n: '1', code: '/sprint init',                         note: 'in Claude Code — foundation gate + scaffold' },
-              { n: '2', code: 'npx kapi-sprints dashboard',           note: 'in a separate terminal — opens the dashboard' },
-              { n: '3', code: '/preflight v1',                        note: 'back in Claude Code — validate before building' },
-              { n: '4', code: '/prd v1',                              note: 'plan your first sprint' },
+              { n: '1', code: '/preflight',    note: 'in Claude Code — foundation gate, checks docs' },
+              { n: '2', code: 'npm run dev',   note: 'in a separate terminal — opens the dashboard at :8791' },
+              { n: '3', code: '/prd v1',       note: 'back in Claude Code — plan your first sprint' },
+              { n: '4', code: '/dev v1',       note: 'implement tasks with TDD' },
             ].map(({ n, code, note }) => (
               <div key={n} className="flex items-start gap-4">
                 <span className="text-[10px] font-bold text-emerald-700 font-mono mt-2 shrink-0 w-4">{n}.</span>

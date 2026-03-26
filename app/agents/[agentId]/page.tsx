@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useBlackboard, type BlackboardAgent, type BlackboardDirective, type BlackboardLogEntry } from '@/app/hooks/use-blackboard'
-import { AgentSidebar, isStale } from '@/app/agents/_components/agent-sidebar'
+import { Sidebar, isStale } from '@/app/_components/sidebar'
 
 const SERVER_URL = 'http://127.0.0.1:8790'
 const STALE_MS = 10 * 60 * 1000
@@ -119,7 +119,9 @@ function AgentActivity({ agentId, log }: { agentId: string; log: BlackboardLogEn
 
   const agentLog = useMemo(() =>
     log.filter(entry =>
-      entry.entry.toLowerCase().includes(agentId.toLowerCase())
+      entry.entry.toLowerCase().includes(agentId.toLowerCase()) &&
+      !entry.entry.toLowerCase().includes('heartbeat') &&
+      !entry.entry.toLowerCase().includes('keepalive')
     ).reverse(),
   [log, agentId])
 
@@ -304,6 +306,74 @@ function AgentProfile({ data }: { data: AgentFileData }) {
   )
 }
 
+// ─── Milestones Tab ──────────────────────────────────────────────────────
+
+interface MilestoneEntry { text: string; ts: string }
+
+function AgentMilestones({ agentId, state }: { agentId: string; state: Record<string, unknown> | null }) {
+  const milestones = useMemo(() => {
+    if (!state) return []
+    const agents = state.agents as Record<string, Record<string, unknown>> | undefined
+    if (!agents?.[agentId]?.milestones) return []
+    const raw = agents[agentId].milestones
+    if (!Array.isArray(raw)) return []
+    return (raw as MilestoneEntry[]).slice().reverse()
+  }, [state, agentId])
+
+  return (
+    <div className="space-y-2">
+      {milestones.length === 0 && (
+        <p className="text-[10px] text-zinc-700 italic py-4 text-center">
+          No milestones yet.
+          <br />
+          <span className="text-zinc-600">Agent posts milestones to agents.{agentId}.milestones on the blackboard.</span>
+        </p>
+      )}
+      {milestones.map((m, i) => (
+        <div key={i} className="flex items-start gap-2 py-1.5 px-3 rounded hover:bg-zinc-900/60 transition-colors">
+          <span className="text-emerald-500 text-xs mt-0.5 shrink-0">✓</span>
+          <span className="text-xs text-zinc-300 flex-1">{m.text}</span>
+          <span className="text-[10px] text-zinc-600 shrink-0 font-mono">{m.ts ? timeAgo(m.ts) : ''}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Learnings Tab ──────────────────────────────────────────────────────
+
+interface LearningEntry { text: string; ts: string }
+
+function AgentLearnings({ agentId, state }: { agentId: string; state: Record<string, unknown> | null }) {
+  const learnings = useMemo(() => {
+    if (!state) return []
+    const agents = state.agents as Record<string, Record<string, unknown>> | undefined
+    if (!agents?.[agentId]?.learnings) return []
+    const raw = agents[agentId].learnings
+    if (!Array.isArray(raw)) return []
+    return (raw as LearningEntry[]).slice().reverse()
+  }, [state, agentId])
+
+  return (
+    <div className="space-y-2">
+      {learnings.length === 0 && (
+        <p className="text-[10px] text-zinc-700 italic py-4 text-center">
+          No learnings yet.
+          <br />
+          <span className="text-zinc-600">Agent posts learnings to agents.{agentId}.learnings on the blackboard.</span>
+        </p>
+      )}
+      {learnings.map((l, i) => (
+        <div key={i} className="flex items-start gap-2 py-1.5 px-3 rounded hover:bg-zinc-900/60 transition-colors">
+          <span className="text-sky-400 text-xs mt-0.5 shrink-0">*</span>
+          <span className="text-xs text-zinc-300 flex-1">{l.text}</span>
+          <span className="text-[10px] text-zinc-600 shrink-0 font-mono">{l.ts ? timeAgo(l.ts) : ''}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Live State Tab ──────────────────────────────────────────────────────────
 
 function AgentProperties({ agent }: { agent: BlackboardAgent }) {
@@ -332,7 +402,7 @@ export default function AgentDetailPage() {
   const agentId = decodeURIComponent(params.agentId as string)
   const { state, connected } = useBlackboard()
   const { data: fileData, loading: fileLoading } = useAgentFile(agentId)
-  const [tab, setTab] = useState<'activity' | 'tasks' | 'signals' | 'profile' | 'state'>('activity')
+  const [tab, setTab] = useState<'activity' | 'tasks' | 'signals' | 'milestones' | 'learnings' | 'profile' | 'state'>('activity')
   const [sweeping, setSweeping] = useState(false)
 
   useEffect(() => {
@@ -359,8 +429,14 @@ export default function AgentDetailPage() {
   const colors = STATUS_COLORS[status] || STATUS_COLORS.stale
 
   const taskCount = directives.filter(d => d.assigned_to === agentId || d.assignee === agentId).length
-  const activityCount = log.filter(e => e.entry.toLowerCase().includes(agentId.toLowerCase())).length
+  const activityCount = log.filter(e =>
+    e.entry.toLowerCase().includes(agentId.toLowerCase()) &&
+    !e.entry.toLowerCase().includes('heartbeat') &&
+    !e.entry.toLowerCase().includes('keepalive')
+  ).length
   const signalCount = Array.isArray((agent as Record<string, unknown>)?.signals) ? ((agent as Record<string, unknown>).signals as unknown[]).length : 0
+  const milestoneCount = Array.isArray((agent as Record<string, unknown>)?.milestones) ? ((agent as Record<string, unknown>).milestones as unknown[]).length : 0
+  const learningCount = Array.isArray((agent as Record<string, unknown>)?.learnings) ? ((agent as Record<string, unknown>).learnings as unknown[]).length : 0
 
   // Sidebar data
   const agentEntries = Object.entries(agents).filter(([id, a]) => a != null && !id.startsWith('shim-')) as [string, BlackboardAgent][]
@@ -384,7 +460,7 @@ export default function AgentDetailPage() {
   return (
     <div className="min-h-screen bg-zinc-950 flex">
       {/* Sidebar */}
-      <AgentSidebar
+      <Sidebar
         agentEntries={agentEntries}
         connected={connected}
         staleCount={staleCount}
@@ -435,6 +511,8 @@ export default function AgentDetailPage() {
               { key: 'activity', label: 'Activity', count: activityCount },
               { key: 'tasks', label: 'Tasks', count: taskCount },
               { key: 'signals', label: 'Signals', count: signalCount },
+              { key: 'milestones', label: 'Milestones', count: milestoneCount },
+              { key: 'learnings', label: 'Learnings', count: learningCount },
               { key: 'profile', label: 'Profile', count: undefined },
               { key: 'state', label: 'Live State', count: undefined },
             ] as const).map(t => (
@@ -469,6 +547,18 @@ export default function AgentDetailPage() {
 
             {tab === 'signals' && (
               <AgentSignals agentId={agentId} state={state as Record<string, unknown> | null} />
+            )}
+
+            {tab === 'milestones' && (
+              <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-2">
+                <AgentMilestones agentId={agentId} state={state as Record<string, unknown> | null} />
+              </div>
+            )}
+
+            {tab === 'learnings' && (
+              <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-2">
+                <AgentLearnings agentId={agentId} state={state as Record<string, unknown> | null} />
+              </div>
             )}
 
             {tab === 'profile' && (

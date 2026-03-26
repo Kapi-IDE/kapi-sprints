@@ -5,10 +5,10 @@ import path from 'path'
 
 export const PROJECT = {
   /** Your project name — shown in the sidebar header */
-  name: 'Kapi Platform',
+  name: 'Kapi Sprints',
 
   /** 2-letter initials (fallback when logo image is not used) */
-  short: 'KP',
+  short: 'KS',
 
   /** One-line description (shown in README / about) */
   description: 'Enterprise AI Agent Platform — sprint dashboard',
@@ -21,7 +21,7 @@ export const PROJECT = {
    * The dashboard reads sprint data, blackboard, backlog, etc. from here.
    * Defaults to ./kapi in the current working directory.
    */
-  opsDir: '/Users/bv/Code/active/kapi-sprints/kapi',
+  opsDir: 'kapi',
 }
 
 /** Resolved absolute path to the operations directory */
@@ -33,4 +33,4 @@ export const OPS_DIR = path.isAbsolute(PROJECT.opsDir)
 export const DOCS_DIR = path.dirname(OPS_DIR)
 
 /** Shared kapi/ state directory (blackboard, agents, backlog) */
-export const KAPI_DIR = '/Users/bv/Code/active/kapi-sprints/kapi'
+export const KAPI_DIR = path.join(process.cwd(), 'kapi')

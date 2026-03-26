@@ -7,17 +7,10 @@ A multiagent sprint coordination system built on 30 years of classical MAS resea
 The 16 pillars of multiagent systems, implemented. Start here.
 
 - [Vision: 16 Pillars in Practice](concepts/vision.md) — the full mapping of classical MAS research to kapi-sprints
+- [The 16 Pillars](concepts/pillars.md) — each pillar: failure it prevents, classical root, kapi-sprints implementation
 - [The Blackboard Pattern](concepts/blackboard.md) — Pillars 1, 4, 5, 8: shared state, result sharing, communication, memory
 - [Backwards Build](concepts/backwards-build.md) — Pillar 16: the engineering methodology
 - [Human-in-the-Loop](concepts/hitl.md) — Pillars 9, 10, 12, 13: earned autonomy, trust, learning, governance
-
-## Product Definition
-
-What we're building and for whom.
-
-- [Vision & Mission](foundation/vision.md) — one-page summary
-- [Market](foundation/market.md) — ICP, alternatives, willingness to pay
-- [Spec](foundation/spec.md) — core flows, MVP scope, success criteria
 
 ## Architecture & Design
 
@@ -39,27 +32,31 @@ Archived sprint records.
 - [Board (v1)](history/board-v1.md) — blackboard state snapshot from Feb 24
 - [Blackboard entries](history/entries/) — 3 posts from v1 sprint
 
-## Research
-
-The classical MAS foundations that inform the system's design.
-
-- [book.pdf](references/book.pdf) — *The Engineering Handbook for Multiagent Systems* by Dr. Balaji Viswanathan
-- [Classical References](references/CLASSICAL-REFERENCES.md) — 40+ years of MAS research mapped to 16 pillars
-- [Prep Material](references/prep-material.md) — 16 pillars deep dive with failure scenarios and solutions
-- [Syllabus](references/SYLLABUS.md) — MAS workshop learning design (14 modules, 2 days)
-- [Content Status](references/CONTENT-STATUS.md) — workshop content delivery audit
-- [Findings](references/FINDINGS.md) — content gap analysis
 
 ## Live State
 
-The `kapi/` directory (not in docs/) holds live sprint state:
+The `kapi/` directory (not in docs/) holds live sprint state. Each file answers a question and feeds a dashboard page:
 
 ```
 kapi/
-├── blackboard-live.yaml   # Source of truth (managed by blackboard server)
-├── backlog.md             # Inbox items
-├── status.md              # Demo-safe features, known gaps
-├── entries/               # Narrative posts (findings, decisions, blockers)
-├── agents/                # Agent profile .md files
-└── sprints/               # Active sprint files
+├── snapshot.yaml          # "Where are we?"      → /dashboard command center
+├── decisions.yaml         # "What did we decide?" → /decisions page (ADRs + reviews)
+├── backlog.md             # "What's next?"        → /backlog page
+├── board.md               # "What's happening?"   → /board (blockers, findings, status)
+├── lessons.md             # "What did we learn?"  → /lessons page (append-only)
+├── blackboard-live.yaml   # Agent coordination    → /agents page (managed by server)
+├── entries/               # "What happened?"       → Stream view (one .md per event)
+├── agents/                # Who's connected?       → Agent profiles (auto-created)
+└── sprints/               # Sprint records         → /sprints/v1 detail view
+    └── v1/tasks.md        #   Current sprint tasks + prd.md
 ```
+
+### The five questions
+
+| Question | File | Page | Writer |
+|----------|------|------|--------|
+| Where are we? | `snapshot.yaml` | `/dashboard` | PM agent |
+| What did we decide? | `decisions.yaml` | `/decisions` | Any agent, `/review` skill |
+| What's next? | `backlog.md` | `/backlog` | `/post queue`, backlog API |
+| What's happening? | `board.md` | `/board` | `/post`, agents |
+| What did we learn? | `lessons.md` | `/lessons` | Agents + humans (append-only) |
