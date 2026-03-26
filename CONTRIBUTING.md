@@ -4,7 +4,7 @@ Thanks for your interest. Here's how to contribute.
 
 ## Before You Start
 
-Read [docs/guides/principles.md](docs/guides/principles.md) — the design philosophy shapes all decisions. Key points:
+Read [docs/concepts/vision.md](docs/concepts/vision.md) — the design philosophy shapes all decisions. Key points:
 
 - **Backwards Build** — define done before writing code
 - **Blackboard coordination** — all state goes through board.md
@@ -30,7 +30,7 @@ npm run dev        # localhost:3000
 
 ## What to Contribute
 
-Check [docs/operations/backlog.md](docs/operations/backlog.md) for ideas. High-value areas:
+Check [kapi/backlog.md](kapi/backlog.md) for ideas. High-value areas:
 
 - Real-time file watching (SSE)
 - New Claude Code skills
@@ -39,8 +39,8 @@ Check [docs/operations/backlog.md](docs/operations/backlog.md) for ideas. High-v
 
 ## What Not to Change
 
-- `docs/operations/sprints/v1/` — this is the self-hosting demo data. Don't modify.
-- `docs/guides/principles.md` — design philosophy is stable.
+- `docs/history/sprints/v1/` — this is the self-hosting demo data. Don't modify.
+- `docs/concepts/vision.md` — design philosophy is stable.
 - Blackboard format (`board.md` sections, entry frontmatter) — parsers depend on it.
 
 ## License

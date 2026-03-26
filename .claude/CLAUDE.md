@@ -4,13 +4,13 @@ This file tells Claude Code how to work with this repository.
 
 ## What This Is
 
-A file-based sprint dashboard for Claude Code teams. The UI reads plain Markdown from `docs/operations/` and renders it as an IDE-like interface.
+A multiagent sprint coordination system for Claude Code teams. Two subsystems: **sprint files** (durable record) and **blackboard** (live state). Three memory tiers: working (directives), episodic (entries), semantic (tasks, backlog, status).
 
 ## Sprint Workflow
 
 ```
 /prd v2          → Plan sprint (interactive): produces tasks.md + prd.md
-/dev v2          → Implement tasks (TDD + Playwright): pick next task, write test, implement, verify
+/dev v2          → Implement tasks (TDD): pick next task, write test, implement, verify
 /test v2         → QA gate: build, lint, code review, push check
 /post            → Post to blackboard (finding, decision, blocker, etc.)
 /walkthrough v2  → Generate sprint review: narrative of what was built
@@ -19,14 +19,20 @@ A file-based sprint dashboard for Claude Code teams. The UI reads plain Markdown
 ## Key Directories
 
 ```
-docs/operations/
-├── blackboard/board.md        ← Shared coordination state (read on every page load)
-├── blackboard/entries/        ← One file per finding/decision/milestone (frontmatter + body)
-├── sprints/v1/tasks.md        ← Task list with checkboxes
-├── sprints/v1/prd.md          ← Sprint goals and task breakdown
+kapi/                          ← Live sprint state (project.config.ts opsDir)
+├── blackboard-live.yaml       ← Blackboard source of truth (managed by server)
+├── entries/                   ← One file per finding/decision/milestone (frontmatter + body)
+├── sprints/{version}/         ← Active sprint tasks.md + prd.md
+├── agents/                    ← Agent profile .md files (auto-created)
 ├── backlog.md                 ← Unscheduled ideas (## Inbox section)
-├── scorecard.md               ← Platform health %
 └── status.md                  ← Demo-safe features, known gaps, history
+
+docs/                          ← Documentation (see docs/README.md)
+├── concepts/                  ← Vision, blackboard pattern, principles
+├── foundation/                ← Product definition (vision, market, spec)
+├── design/                    ← Architecture decisions, OSS plans
+├── history/                   ← Archived sprint records (v1, v2)
+└── references/                ← MAS research, book, classical references
 
 app/[version]/page.tsx         ← Server component: reads all .md files
 app/[version]/_components/     ← DevDashboard.tsx + RightPanel.tsx
@@ -48,7 +54,7 @@ project.config.ts              ← Project name, initials, description
 
 This applies to **both humans and agents**. Agents invoke `/post` programmatically during `/dev`, `/test`, etc. Humans type it in the terminal. Same protocol, same format, same entry files.
 
-Entry files land in `docs/operations/blackboard/entries/` with frontmatter:
+Entry files land in `kapi/entries/` with frontmatter:
 ```yaml
 ---
 type: finding | decision | blocker | steer | available | handoff | queued

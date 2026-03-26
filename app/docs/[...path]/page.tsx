@@ -1,4 +1,5 @@
 import fs from 'fs/promises'
+import { existsSync, mkdirSync } from 'fs'
 import path from 'path'
 import { notFound } from 'next/navigation'
 import { marked } from 'marked'
@@ -6,7 +7,12 @@ import type { Metadata } from 'next'
 import { DocViewer } from './_components/DocViewer'
 import { DOCS_DIR } from '../../../project.config'
 
-const DOCS_ROOT = DOCS_DIR
+// Prefer docs/ subfolder if it exists; otherwise create it
+const DOCS_SUBFOLDER = path.join(DOCS_DIR, 'docs')
+const DOCS_ROOT = existsSync(DOCS_SUBFOLDER) ? DOCS_SUBFOLDER : (() => {
+  mkdirSync(DOCS_SUBFOLDER, { recursive: true })
+  return DOCS_SUBFOLDER
+})()
 
 // ─── File tree ────────────────────────────────────────────────────────────────
 

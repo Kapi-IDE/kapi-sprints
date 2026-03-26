@@ -2,41 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { OPS_DIR } from '../../../../project.config'
+import { now, datestamp, slug, extractTitle, extractContext } from '../../../../lib/resolve-helpers'
 
 // POST /api/blackboard/resolve
 // Body: { item: string; resolution: string; action: 'adr' | 'task' | 'close'; adrTitle?: string; assignee?: string }
-
-function now(): string {
-  const d = new Date()
-  const mon = d.toLocaleString('en-US', { month: 'short' }).toLowerCase()
-  const day = d.getDate()
-  let hour = d.getHours()
-  const ampm = hour >= 12 ? 'pm' : 'am'
-  hour = hour % 12 || 12
-  return `${mon} ${day} ${hour}${ampm}`
-}
-
-function datestamp(): string {
-  const d = new Date()
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`
-}
-
-function slug(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)
-}
-
-function extractTitle(item: string): string {
-  return item.match(/^\*\*(.+?)\*\*/)?.[1] ?? item.replace(/→.*$/, '').trim().slice(0, 60)
-}
-
-function extractContext(item: string): string {
-  return item
-    .replace(/^\*\*[^*]+\*\*\s*—\s*/, '')
-    .replace(/\s*→\s*`entries\/[^`]+`/, '')
-    .replace(/\*\*/g, '')
-    .trim()
-}
 
 export async function POST(req: NextRequest) {
   try {

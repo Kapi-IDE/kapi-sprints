@@ -1,146 +1,182 @@
 # Architecture
 
-> Two packages, one monorepo. Filesystem is the API.
+> Two subsystems. Filesystem is the API. Skills write, dashboard reads.
 
 ---
 
-## Monorepo Structure
+## System Overview
 
 ```
-kapihq/kapi-sprints/
-│
-├── plugin/                          # Claude Code plugin
-│   ├── .claude-plugin/
-│   │   └── plugin.json             # Plugin metadata
-│   ├── commands/
-│   │   ├── sprint.md               # /sprint init, /sprint spec, /sprint dashboard
-│   │   └── dashboard.md            # /sprint dashboard (fallback manual start)
-│   ├── skills/
-│   │   ├── preflight/SKILL.md      # Generalized from Kapi version
-│   │   ├── scorecard/SKILL.md      # Reads user-defined layers
-│   │   ├── prd/SKILL.md
-│   │   ├── dev/SKILL.md
-│   │   ├── test/SKILL.md
-│   │   ├── walkthrough/SKILL.md
-│   │   ├── checkpoint/SKILL.md     # Ships as-is (universal)
-│   │   ├── resume/SKILL.md         # Ships as-is (universal)
-│   │   └── post/SKILL.md           # Ships as-is (universal)
-│   ├── agents/
-│   │   ├── arch-reviewer.md        # Generalized
-│   │   └── test-planner.md         # Generalized
-│   ├── hooks/
-│   │   └── hooks.json              # File-watch triggers, session_start hint
-│   └── README.md
-│
-├── dashboard/                       # Next.js app
-│   ├── package.json                # name: "kapi-sprints", bin: cli.js
-│   ├── bin/cli.js                  # npx entry point
-│   ├── app/                        # Next.js app router
-│   │   ├── page.tsx                # Blackboard (default landing)
-│   │   ├── sprint/[version]/
-│   │   │   ├── page.tsx            # Sprint overview
-│   │   │   ├── build/page.tsx
-│   │   │   ├── qa/page.tsx
-│   │   │   └── review/page.tsx
-│   │   ├── blackboard/page.tsx
-│   │   ├── backlog/page.tsx
-│   │   └── adrs/page.tsx
-│   ├── lib/
-│   │   ├── watcher.ts             # chokidar → WebSocket
-│   │   └── parsers/
-│   │       ├── tasks.ts           # Parse tasks.md → blocks, tasks, status
-│   │       ├── board.ts           # Parse board.md → blockers, decisions
-│   │       ├── scorecard.ts       # Parse scorecard.md → layer grades
-│   │       └── checkpoint.ts      # Parse checkpoint entries
-│   └── components/                 # UI components (extracted from Kapi)
-│
-├── LICENSE                         # Apache 2.0
-├── NOTICE                          # "Originally created by Kapi AI (getkapi.com)"
-└── README.md                       # The story — this is the marketing
+Claude Code terminals          State files                 Dashboard
+┌──────────────┐
+│ Terminal 1   │──writes──▶  kapi/
+│  /dev v1     │             ├── blackboard-live.yaml  ◀──reads──  localhost:8791
+├──────────────┤             ├── entries/
+│ Terminal 2   │──writes──▶  ├── sprints/v1/
+│  /test v1    │             │   ├── tasks.md
+├──────────────┤             │   └── prd.md
+│ Terminal 3   │──writes──▶  ├── backlog.md
+│  /prd v2     │             └── status.md
+└──────────────┘
+```
+
+**Skills write markdown. The blackboard server manages live state. The dashboard reads both.** They never talk directly — the filesystem and YAML state are the only interface.
+
+---
+
+## Blackboard Server (`blackboard/server.ts`)
+
+Shared singleton process (Bun, port 8790). Owns the source of truth: `kapi/blackboard-live.yaml`.
+
+```
+Endpoints:
+  POST /register     Agent shims register callback ports
+  POST /unregister   Cleanup on exit
+  POST /read         Read state (agents, directives, log)
+  POST /write        Write + broadcast to all agents
+  POST /directive    Post directive (from dashboard UI or human)
+  GET  /state        Raw JSON state
+  GET  /agents       Debug: registered agents
+  POST /sweep        Remove stale agents (last_seen > 10 min)
+  WS   /ws           WebSocket for live dashboard updates
+```
+
+Key properties:
+- In-memory YAML state (single-threaded = race-free)
+- Protected roots: `log` and `blackboard` cannot be overwritten directly
+- Payload size guard: 512 KB max
+- Agent profiles auto-created as `.md` files in `kapi/agents/`
+
+---
+
+## MCP Shim (`blackboard/shim.ts`)
+
+Per-agent MCP stdio proxy. Claude Code spawns one per session.
+
+1. Declares `claude/channel` capability → enables `<channel>` notifications
+2. Registers callback port with shared server
+3. Proxies two tools to server via HTTP:
+   - `read_blackboard(section?)` → POST /read
+   - `write_to_blackboard(path, value, log_entry)` → POST /write
+4. Listens on callback port for `/notify` from server
+5. Translates HTTP → `notifications/claude/channel` over stdio
+6. Auto-starts server if not running
+7. Auto-starts Next.js dashboard if not running
+8. Heartbeat every 5 min
+
+---
+
+## Skills (`.claude/skills/`)
+
+| Skill | What it writes | Generalization |
+|-------|---------------|----------------|
+| `/prd` | `kapi/sprints/{v}/prd.md` + `tasks.md` | Read layers from config |
+| `/dev` | Updates task checkboxes, entries | Already generic |
+| `/test` | Build + lint + types → push to dev | Already generic |
+| `/post` | Entry files + board sections | Already generic |
+| `/preflight` | Pre-sprint readiness check | Read layers from config |
+| `/scorecard` | Quality layer audit | Read layers from config |
+| `/walkthrough` | Sprint review narrative | Already generic |
+| `/checkpoint` | Session state to blackboard | Universal |
+| `/resume` | Restore context from checkpoint | Universal |
+
+### Foundation Gate (baked into `/sprint init`)
+
+Before any sprint, three docs must exist:
+1. `docs/foundation/vision.md` — why does this exist?
+2. `docs/foundation/market.md` — who is it for?
+3. `docs/foundation/spec.md` — what are you building?
+
+Missing → Claude generates via conversation (~15 min). Thin → offers to flesh out. All pass → scaffold sprint structure.
+
+### Scorecard Customization
+
+Scorecard reads user-defined layers from config, not hardcoded layers:
+
+```markdown
+# kapi-sprints.config.md
+
+## Layers (what /scorecard audits)
+1. API — routes, validation, error handling
+2. Auth — session, permissions, tokens
+3. UI — components, accessibility
+4. Data — models, migrations, queries
+5. Tests — coverage, e2e, integration
 ```
 
 ---
 
-## Package Boundaries
+## Dashboard (`app/`)
 
-| Package | Purpose | Distribution | Install |
-|---------|---------|-------------|---------|
-| `plugin/` | Skills, agents, commands, hooks for Claude Code | Self-hosted marketplace (GitHub) | `claude plugin marketplace add kapihq/kapi-sprints` |
-| `dashboard/` | Next.js dashboard UI | npm | `npx kapi-sprints dashboard` |
+Next.js 16 + React 19 + Tailwind 4. Dark theme (zinc/amber palette).
 
-**They share nothing in code.** The filesystem (.md files) is the only interface.
+### Views
+
+| View | What it shows |
+|------|-------------|
+| **Overview** | Sprint velocity, QA quality, blockers, decisions, findings, queue |
+| **Build** | Task blocks with checkboxes (persists to tasks.md) |
+| **Agents** | Live agent cards, directive kanban, activity stream |
+| **Stream** | Filterable timeline of all blackboard entries |
+| **Docs** | Markdown + Mermaid rendering of any file in docs/ |
+| **Backlog** | Inbox items and queued work |
+
+### Data Flow
+
+```
+Server components read markdown files at request time
+  → Parse via lib/parsers/ (tasks.ts, board.ts, scorecard.ts)
+  → Render as structured UI
+
+Client components connect to blackboard server
+  → WebSocket (ws://localhost:8790/ws) for live agent state
+  → useBlackboard() hook for reactive updates
+```
+
+### File ↔ Dashboard Contract
+
+| File | Writer | Reader | Format |
+|------|--------|--------|--------|
+| `tasks.md` | `/prd`, `/dev` | Dashboard | Blocks with `### Block X`, tasks with `- [x]` / `- [ ]` |
+| `blackboard-live.yaml` | Server | Dashboard, agents | YAML with agents, directives, log |
+| `entries/*.md` | `/post`, `/checkpoint` | Dashboard | YAML frontmatter + markdown body |
+| `backlog.md` | `/prd`, `/post` | Dashboard | `## Inbox` and `## Done` sections |
+| `status.md` | Various | Dashboard | Demo/gaps/history sections |
+
+**This contract is the API.** The only coupling between writer and reader.
 
 ---
 
-## Data Flow
+## Auto-Invocable Agents (2)
 
-```
-┌─────────────────────────────────────────────────┐
-│  Claude Code + Plugin                            │
-│                                                  │
-│  /preflight v1  → writes sprints/v1/preflight.md │
-│  /prd v1        → writes sprints/v1/tasks.md     │
-│  /dev v1        → updates task statuses           │
-│  /checkpoint    → writes blackboard/entries/      │
-│  /scorecard v1  → writes sprints/v1/scorecard.md  │
-│  /post          → writes blackboard/board.md      │
-└──────────────────┬──────────────────────────────┘
-                   │
-                   │  .md files on disk
-                   │
-┌──────────────────▼──────────────────────────────┐
-│  Dashboard (Next.js)                             │
-│                                                  │
-│  chokidar watches:                               │
-│    docs/operations/sprints/*/tasks.md             │
-│    docs/operations/blackboard/board.md            │
-│    docs/operations/blackboard/entries/*.md         │
-│    docs/operations/sprints/*/scorecard.md          │
-│                                                  │
-│  Parses markdown → structured data               │
-│  Pushes via WebSocket → browser updates           │
-│                                                  │
-│  localhost:3838                                   │
-└─────────────────────────────────────────────────┘
-```
+| Agent | Trigger | What it does |
+|-------|---------|-------------|
+| `arch-reviewer` | `/dev` surfaces architecture decisions | Reviews patterns, suggests ADRs |
+| `test-planner` | `/dev` builds new functionality | Plans test coverage, suggests structure |
 
 ---
 
-## File Conventions
+## Why Files + Server (Not Just Files)
 
-The plugin expects this directory structure in any project:
+v1 was files-only. The blackboard server was added for:
 
-```
-<project-root>/
-├── kapi-sprints.config.md          # Generated by /sprint init or /sprint spec
-├── docs/
-│   └── operations/
-│       ├── sprints/
-│       │   ├── v1/
-│       │   │   ├── tasks.md
-│       │   │   ├── prd.md
-│       │   │   ├── scorecard.md
-│       │   │   └── preflight.md
-│       │   └── v2/
-│       │       └── ...
-│       └── blackboard/
-│           ├── board.md            # Live blackboard state
-│           ├── stream.md           # Chronological feed
-│           └── entries/            # Checkpoint entries
-│               ├── 2026-02-24-session-1.md
-│               └── ...
-```
+- **Live agent coordination** — agents register, receive broadcasts, coordinate in real-time
+- **Directive routing** — target specific agents (`@dev fix auth`)
+- **Session independence** — agents can join/leave without restarting the system
+- **Dashboard live updates** — WebSocket push instead of polling
 
-`/sprint init` scaffolds this structure. Dashboard discovers it via `kapi-sprints.config.md`.
+The files remain the durable record. The server manages ephemeral coordination state.
 
 ---
 
-## Why Not MCP?
+## Technology Stack
 
-MCP servers are lightweight JSON-RPC processes over stdio. The dashboard is a real application — sidebar navigation, WebSocket updates, multiple views, rich UI. That deserves its own process.
-
-MCP tools can come later as a v2 enhancement (letting Claude answer "what's on my blackboard?" without file reads). For launch, files-as-API is simpler, proven, and already working across 8+ sprints of battle-testing.
-
----
-
-*See [plugin.md](plugin.md) for plugin internals, [dashboard.md](dashboard.md) for dashboard architecture.*
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Bun (server, shim) + Node (Next.js) |
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 (dark: zinc/amber) |
+| State | YAML (live) + Markdown (durable) |
+| Protocol | MCP (Model Context Protocol) |
+| AI | Optional Gemini integration via shim |
+| Diagrams | Mermaid (rendered in docs viewer) |

@@ -35,7 +35,7 @@ This triggers the staging auto-deploy.
 
 ## After Running
 
-Write a one-line summary to `## Activity` in `docs/operations/blackboard/board.md`:
+Write a one-line summary to `## Activity` in `kapi/board.md`:
 
 **On pass:**
 `- **Test** ($ARGUMENTS) — QA gate passed: build ✓ types ✓ lint ✓ — pushed to dev — {ts}`

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useBlackboard, type BlackboardState, type BlackboardAgent, type BlackboardDirective, type BlackboardLogEntry } from '@/app/hooks/use-blackboard'
+import { AgentSidebar, isStale } from '@/app/agents/_components/agent-sidebar'
 import Link from 'next/link'
 
 const SERVER_URL = 'http://127.0.0.1:8790'
@@ -42,23 +43,33 @@ const ROLE_ICONS: Record<string, string> = {
 // ─── Agent Card ───────────────────────────────────────────────────────────────
 
 function AgentCard({ id, agent }: { id: string; agent: BlackboardAgent }) {
-  const status = agent.status || 'idle'
+  const stale = isStale(agent)
+  const status = stale ? 'stale' : (agent.status || 'idle')
   const role = agent.role || 'Agent'
-  const dotColor = STATUS_COLORS[status] || 'bg-zinc-600'
+  const dotColor = stale ? 'bg-zinc-600 animate-pulse' : (STATUS_COLORS[agent.status || 'idle'] || 'bg-zinc-600')
   const icon = ROLE_ICONS[role] || role.slice(0, 2).toUpperCase()
+  const lastSeen = agent.last_seen as string | undefined
 
   return (
-    <div className="flex items-start gap-3 bg-zinc-900/80 border border-zinc-800 rounded-lg p-3 min-w-[200px]">
-      <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">
+    <Link href={`/agents/${encodeURIComponent(id)}`} className={`flex items-start gap-3 border rounded-lg p-3 min-w-[200px] hover:border-emerald-500/30 transition-colors ${
+      stale ? 'bg-zinc-900/40 border-zinc-800/50 opacity-60' : 'bg-zinc-900/80 border-zinc-800'
+    }`}>
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+        stale ? 'bg-zinc-800/50 text-zinc-600' : 'bg-zinc-800 text-emerald-400'
+      }`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-200 truncate">{id}</span>
+          <span className={`text-sm font-medium truncate ${stale ? 'text-zinc-500' : 'text-zinc-200'}`}>{id}</span>
           <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+          {stale && <span className="text-[8px] text-red-400/70 font-mono">STALE</span>}
         </div>
-        <p className="text-[10px] text-zinc-500 mt-0.5">{role} &middot; {status}</p>
-        {agent.capabilities && (
+        <p className="text-[10px] text-zinc-500 mt-0.5">
+          {role} &middot; {status}
+          {lastSeen && <span className="ml-1 text-zinc-600">&middot; {timeAgo(lastSeen)}</span>}
+        </p>
+        {agent.capabilities && !stale && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {(agent.capabilities as string[]).slice(0, 3).map(c => (
               <span key={c} className="text-[9px] px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-500">{c}</span>
@@ -66,7 +77,7 @@ function AgentCard({ id, agent }: { id: string; agent: BlackboardAgent }) {
           </div>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -241,18 +252,7 @@ function CommandInput() {
   )
 }
 
-// ─── Connection Status ────────────────────────────────────────────────────────
-
-function ConnectionBadge({ connected }: { connected: boolean }) {
-  return (
-    <span className={`flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-full ${
-      connected ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' : 'bg-zinc-900 text-zinc-600 border border-zinc-800'
-    }`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
-      {connected ? 'live' : 'disconnected'}
-    </span>
-  )
-}
+// ─── (AgentSidebar imported from shared component) ───────────────────────────
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -260,28 +260,49 @@ export default function AgentsPage() {
   const { state, connected } = useBlackboard()
   const [showRaw, setShowRaw] = useState(false)
 
+  const [sweeping, setSweeping] = useState(false)
+
   const agents = state?.agents || {}
   const directives = state?.directives || []
   const log = state?.log || []
-  const agentCount = Object.keys(agents).length
+  const agentEntries = Object.entries(agents).filter(([id, a]) => a != null && !id.startsWith('shim-')) as [string, BlackboardAgent][]
+  const staleCount = agentEntries.filter(([, a]) => isStale(a)).length
+
+  async function sweepStale() {
+    setSweeping(true)
+    try {
+      await fetch(`${SERVER_URL}/sweep`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ stale_minutes: 10 }),
+      })
+    } catch (err) {
+      console.error('Sweep failed:', err)
+    } finally {
+      setSweeping(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950 shrink-0">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm">
-              &larr; Dashboard
-            </Link>
-            <div className="w-px h-5 bg-zinc-800" />
+    <div className="min-h-screen bg-zinc-950 flex">
+      {/* Left Sidebar */}
+      <AgentSidebar
+        agentEntries={agentEntries}
+        connected={connected}
+        staleCount={staleCount}
+        onSweep={sweepStale}
+        sweeping={sweeping}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="border-b border-zinc-800/80 bg-zinc-950 shrink-0">
+          <div className="px-6 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-lg font-bold text-zinc-100">Multi-Agent Coordination</h1>
               <p className="text-[11px] text-zinc-500">Blackboard architecture &middot; Real-time agent orchestration</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ConnectionBadge connected={connected} />
             <button
               onClick={() => setShowRaw(r => !r)}
               className={`text-[10px] font-mono px-2 py-1 rounded border transition-colors ${
@@ -293,123 +314,95 @@ export default function AgentsPage() {
               {showRaw ? 'YAML ON' : 'YAML'}
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-6 space-y-6">
+        <div className="flex-1 px-6 py-6 space-y-6 overflow-y-auto">
 
-        {/* Zone 1: The Swarm — Agent Cards */}
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Agent Swarm</h2>
-            <span className="text-[9px] font-mono px-1.5 py-px rounded bg-zinc-800 text-zinc-500">
-              {agentCount} connected
-            </span>
-          </div>
-          {agentCount === 0 ? (
-            <div className="border border-dashed border-zinc-800 rounded-xl p-8 text-center">
-              <p className="text-sm text-zinc-600">No agents connected</p>
-              <p className="text-[11px] text-zinc-700 mt-1">
-                Start a Claude Code session in kapi-sprints to register an agent.
-                <br/>
-                The agent will appear here when it calls <code className="text-emerald-600">write_to_blackboard</code> to register.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(agents).map(([id, agent]) => (
-                <AgentCard key={id} id={id} agent={agent} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Zone 2: Command Input */}
-        <section>
-          <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-2">Human Directive</h2>
-          <CommandInput />
-          <p className="text-[10px] text-zinc-600 mt-1.5">
-            Target: <code className="text-zinc-500">@agent_name</code> for a specific agent, <code className="text-zinc-500">Dev:</code> <code className="text-zinc-500">Test:</code> <code className="text-zinc-500">PM:</code> for a role, or no prefix for all agents
-          </p>
-        </section>
-
-        {/* Zone 3 + 4: Kanban + Activity (side by side) */}
-        <div className={`grid gap-6 ${showRaw ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 lg:grid-cols-3'}`}>
-          {/* Kanban — takes 2 cols */}
-          <section className="lg:col-span-2">
-            <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Directive Queue</h2>
-            <DirectiveKanban directives={directives} />
-          </section>
-
-          {/* Activity Stream */}
+          {/* Command Input */}
           <section>
-            <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Activity Stream</h2>
-            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-3">
-              <ActivityStream log={log} />
-            </div>
-          </section>
-        </div>
-
-        {/* Zone 5: Raw YAML (toggle) */}
-        {showRaw && (
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Raw Blackboard State</h2>
-              <span className="text-[9px] font-mono px-1.5 py-px rounded bg-violet-950/40 text-violet-400 border border-violet-500/20">
-                EDUCATIONAL VIEW
-              </span>
-            </div>
-            <p className="text-[10px] text-zinc-600 mb-2">
-              This is the actual YAML state that all agents read and write. Every change above is reflected here in real-time.
+            <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-2">Human Directive</h2>
+            <CommandInput />
+            <p className="text-[10px] text-zinc-600 mt-1.5">
+              Target: <code className="text-zinc-500">@agent_name</code> for a specific agent, <code className="text-zinc-500">Dev:</code> <code className="text-zinc-500">Test:</code> <code className="text-zinc-500">PM:</code> for a role, or no prefix for all agents
             </p>
-            <RawStateView state={state} />
           </section>
-        )}
 
-        {/* Protocol Reference */}
-        <section className="border-t border-zinc-800/40 pt-6">
-          <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Protocol Reference</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-emerald-400 mb-2">Agent Lifecycle</h3>
-              <ol className="text-[11px] text-zinc-500 space-y-1 list-decimal list-inside">
-                <li>Register under <code className="text-zinc-400">agents.&lt;name&gt;</code></li>
-                <li>Set status: <code className="text-zinc-400">active</code></li>
-                <li>Read directives, claim matching tasks</li>
-                <li>Update status while working</li>
-                <li>Log results, signal handoff</li>
-              </ol>
-            </div>
-            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-amber-400 mb-2">Directive Flow</h3>
-              <div className="text-[11px] text-zinc-500 space-y-1">
-                <p><span className="text-zinc-400">pending</span> &rarr; Human posts task</p>
-                <p><span className="text-blue-400">claimed</span> &rarr; Agent picks it up</p>
-                <p><span className="text-blue-400">in_progress</span> &rarr; Agent working</p>
-                <p><span className="text-emerald-400">done</span> &rarr; Work complete</p>
-                <p><span className="text-red-400">blocked</span> &rarr; Needs help</p>
+          {/* Kanban + Activity (side by side) */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+            <section className="lg:col-span-2">
+              <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Directive Queue</h2>
+              <DirectiveKanban directives={directives} />
+            </section>
+
+            <section>
+              <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Activity Stream</h2>
+              <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-3">
+                <ActivityStream log={log} />
               </div>
-            </div>
-            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-violet-400 mb-2">Handoff Pattern</h3>
-              <div className="text-[11px] text-zinc-500 space-y-1">
-                <p>Dev finishes &rarr; sets status <code className="text-zinc-400">done</code></p>
-                <p>Posts new directive &rarr; <code className="text-zinc-400">Test: verify auth</code></p>
-                <p>Test agent picks up &rarr; runs tests</p>
-                <p>Reports back &rarr; pass/fail on board</p>
-              </div>
-            </div>
+            </section>
           </div>
-        </section>
-      </div>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-800/60 py-3 shrink-0">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-[10px] font-mono text-zinc-600">
-          <span>blackboard server: {SERVER_URL}</span>
-          <span>kapi-sprints &middot; multi-agent coordination</span>
+          {/* Raw YAML (toggle) */}
+          {showRaw && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Raw Blackboard State</h2>
+                <span className="text-[9px] font-mono px-1.5 py-px rounded bg-violet-950/40 text-violet-400 border border-violet-500/20">
+                  EDUCATIONAL VIEW
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-600 mb-2">
+                This is the actual YAML state that all agents read and write. Every change above is reflected here in real-time.
+              </p>
+              <RawStateView state={state} />
+            </section>
+          )}
+
+          {/* Protocol Reference */}
+          <section className="border-t border-zinc-800/40 pt-6">
+            <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-3">Protocol Reference</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-emerald-400 mb-2">Agent Lifecycle</h3>
+                <ol className="text-[11px] text-zinc-500 space-y-1 list-decimal list-inside">
+                  <li>Register under <code className="text-zinc-400">agents.&lt;name&gt;</code></li>
+                  <li>Set status: <code className="text-zinc-400">active</code></li>
+                  <li>Read directives, claim matching tasks</li>
+                  <li>Update status while working</li>
+                  <li>Log results, signal handoff</li>
+                </ol>
+              </div>
+              <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-amber-400 mb-2">Directive Flow</h3>
+                <div className="text-[11px] text-zinc-500 space-y-1">
+                  <p><span className="text-zinc-400">pending</span> &rarr; Human posts task</p>
+                  <p><span className="text-blue-400">claimed</span> &rarr; Agent picks it up</p>
+                  <p><span className="text-blue-400">in_progress</span> &rarr; Agent working</p>
+                  <p><span className="text-emerald-400">done</span> &rarr; Work complete</p>
+                  <p><span className="text-red-400">blocked</span> &rarr; Needs help</p>
+                </div>
+              </div>
+              <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-violet-400 mb-2">Handoff Pattern</h3>
+                <div className="text-[11px] text-zinc-500 space-y-1">
+                  <p>Dev finishes &rarr; sets status <code className="text-zinc-400">done</code></p>
+                  <p>Posts new directive &rarr; <code className="text-zinc-400">Test: verify auth</code></p>
+                  <p>Test agent picks up &rarr; runs tests</p>
+                  <p>Reports back &rarr; pass/fail on board</p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </footer>
+
+        {/* Footer */}
+        <footer className="border-t border-zinc-800/60 py-3 shrink-0">
+          <div className="px-6 flex items-center justify-between text-[10px] font-mono text-zinc-600">
+            <span>blackboard server: {SERVER_URL}</span>
+            <span>kapi-sprints &middot; multi-agent coordination</span>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }

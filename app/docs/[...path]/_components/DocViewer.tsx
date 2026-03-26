@@ -136,7 +136,7 @@ export function DocViewer({ html, tree, activePath }: Props) {
           <span className="text-xs font-medium text-zinc-400">Kapi Sprints</span>
         </Link>
         <span className="text-zinc-800">/</span>
-        <Link href="/docs/guides/principles.md" className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors">
+        <Link href="/docs" className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors">
           docs
         </Link>
         {segments.slice(0, -1).map((seg, i) => (

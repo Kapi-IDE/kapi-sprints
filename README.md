@@ -76,15 +76,15 @@ Getting to AI-native requires three things working together:
 Inspired by Hearsay-II (1980) and BB1 (1985): a shared knowledge store where multiple specialist agents contribute findings, read each other's state, and coordinate toward a common goal. No central orchestrator. No message passing. Just a shared surface.
 
 ```
-Claude Code terminals          Markdown files              Dashboard
+Claude Code terminals          State files                 Dashboard
 ┌──────────────┐
-│ Terminal 1   │──writes──▶  docs/operations/
-│  /dev v1     │             ├── blackboard/
-├──────────────┤             │   ├── board.md      ◀──reads──  localhost:8791
-│ Terminal 2   │──writes──▶  │   └── entries/
-│  /test v1    │             ├── sprints/v1/
-├──────────────┤             │   ├── tasks.md      ◀──reads──  Sprint progress
-│ Terminal 3   │──writes──▶  │   └── review.md     ◀──reads──  Review narrative
+│ Terminal 1   │──writes──▶  kapi/
+│  /dev v1     │             ├── blackboard-live.yaml  ◀──reads──  localhost:8791
+├──────────────┤             ├── entries/
+│ Terminal 2   │──writes──▶  ├── sprints/v1/
+│  /test v1    │             │   ├── tasks.md          ◀──reads──  Sprint progress
+├──────────────┤             │   └── review.md         ◀──reads──  Review narrative
+│ Terminal 3   │──writes──▶  ├── backlog.md
 │  /prd v2     │             └── status.md
 └──────────────┘
 ```
@@ -144,7 +144,7 @@ Review rate
 
 Every human decision — approve, reject, edit — is a labeled training example. Over time, the team's review burden drops. Agents improve. Autonomy is earned, not assumed.
 
-→ **[Read the full vision](docs/guides/vision.md)**
+→ **[Read the full vision](docs/concepts/vision.md)**
 
 ---
 
@@ -274,32 +274,32 @@ blackboard/
 ### File Structure
 
 ```
-docs/operations/
-├── blackboard/
-│   ├── board.md            ← The blackboard — all agents and humans post here
-│   └── entries/            ← One .md per decision/finding/milestone
-├── sprints/
-│   └── v1/
-│       ├── tasks.md        ← Task list (checkboxes persist on click)
-│       ├── prd.md          ← Sprint goals and acceptance criteria
-│       ├── preflight.md    ← Pre-sprint health check
-│       ├── code-review.md  ← QA review output
-│       └── review.md       ← Sprint walkthrough narrative
-├── backlog.md              ← Unscheduled ideas
-├── scorecard.md            ← Platform health grades
-└── status.md               ← What works, what doesn't, sprint history
+kapi/                          ← Live sprint state
+├── blackboard-live.yaml       ← Blackboard (managed by server)
+├── entries/                   ← One .md per decision/finding/milestone
+├── sprints/                   ← Active sprint files
+├── agents/                    ← Agent profile .md files
+├── backlog.md                 ← Unscheduled ideas
+└── status.md                  ← What works, what doesn't
+
+docs/                          ← Documentation
+├── concepts/                  ← Vision, blackboard pattern, principles
+├── foundation/                ← Product definition
+├── design/                    ← Architecture decisions
+├── history/                   ← Archived sprint records
+└── references/                ← MAS research & book
 ```
 
 ---
 
-## Guides
+## Concepts
 
-| Guide | What it covers |
-|-------|---------------|
-| [Vision](docs/guides/vision.md) | The full vision — blackboard theory, sprint workflow, HITL autonomy ramps, target state |
-| [Blackboard Pattern](docs/guides/blackboard-pattern.md) | Hearsay-II and BB1 — the 1980s AI research behind this coordination model |
-| [Backwards Build](docs/guides/backwards-build.md) | Start from done. Every intermediate state is deployable. |
-| [Principles](docs/guides/principles.md) | Durable engineering and product beliefs that shape all decisions |
+| Guide | Pillars | What it covers |
+|-------|---------|---------------|
+| [Vision: 16 Pillars in Practice](docs/concepts/vision.md) | All 16 | The full mapping of classical MAS research to kapi-sprints |
+| [The Blackboard Pattern](docs/concepts/blackboard.md) | 1, 4, 5, 8 | Shared state, result sharing, communication, three memory tiers |
+| [Backwards Build](docs/concepts/backwards-build.md) | 16 | Start from done. Every intermediate state is deployable. |
+| [Human-in-the-Loop](docs/concepts/hitl.md) | 9, 10, 12, 13 | Earned autonomy, trust, learning, governance |
 
 ---
 
@@ -343,7 +343,7 @@ The blackboard pattern and HITL protocol you see in kapi-sprints are the same co
 
 ## Contributing
 
-Contributions welcome. Read [docs/guides/principles.md](docs/guides/principles.md) first — the design philosophy shapes all decisions.
+Contributions welcome. Read [docs/concepts/principles.md](docs/concepts/principles.md) first — the design philosophy shapes all decisions.
 
 ```bash
 git checkout -b feat/your-feature

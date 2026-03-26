@@ -391,18 +391,62 @@ async function register(): Promise<void> {
 // Unregister on exit (with timeout so Ctrl+C always works)
 async function safeExit(): Promise<void> {
   try {
-    await fetch(`${SERVER_URL}/unregister`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ callback_port: actualPort }),
-      signal: AbortSignal.timeout(1500),
-    })
+    // Remove from callback registry and agent state in parallel
+    await Promise.all([
+      fetch(`${SERVER_URL}/unregister`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ callback_port: actualPort }),
+        signal: AbortSignal.timeout(1500),
+      }),
+      fetch(`${SERVER_URL}/write`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          path: `transports.shim-${actualPort}`,
+          value: null,
+          log_entry: `shim-${actualPort} exited`,
+        }),
+        signal: AbortSignal.timeout(1500),
+      }),
+    ])
   } catch {}
   process.exit(0)
 }
 
 process.on('SIGINT', safeExit)
 process.on('SIGTERM', safeExit)
+
+// --- Heartbeat: write last_seen every 5 minutes ---
+const HEARTBEAT_MS = 5 * 60 * 1000
+const shimId = `shim-${actualPort}`
+
+async function heartbeat(): Promise<void> {
+  try {
+    // Re-register callback on every heartbeat so server restarts don't orphan us
+    await fetch(`${SERVER_URL}/register`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ agent: shimId, callback_port: actualPort }),
+      signal: AbortSignal.timeout(3000),
+    })
+    await fetch(`${SERVER_URL}/write`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        path: `transports.${shimId}`,
+        value: { status: 'active', last_seen: now(), port: actualPort, gemini: geminiMode },
+      }),
+      signal: AbortSignal.timeout(3000),
+    })
+  } catch {}
+}
+
+// Send initial heartbeat after registration, then repeat
+async function startHeartbeat(): Promise<void> {
+  await heartbeat()
+  setInterval(heartbeat, HEARTBEAT_MS)
+}
 
 // --- Auto-start server if not running ---
 async function ensureServerRunning(): Promise<boolean> {
@@ -422,9 +466,14 @@ async function ensureServerRunning(): Promise<boolean> {
 
   const serverPath = join(dirname(new URL(import.meta.url).pathname), 'server.ts')
   const projectDir = process.cwd()
+  const kapiDir = join(projectDir, 'kapi')
+
+  // Ensure kapi/ directory exists for shared state
+  const { mkdirSync } = await import('fs')
+  try { mkdirSync(kapiDir, { recursive: true }) } catch {}
 
   Bun.spawn(['bun', serverPath], {
-    env: { ...process.env, BLACKBOARD_DIR: projectDir, BLACKBOARD_PORT: serverPort },
+    env: { ...process.env, BLACKBOARD_DIR: kapiDir, BLACKBOARD_PORT: serverPort },
     stdio: ['ignore', 'ignore', 'ignore'],
   })
 
@@ -433,7 +482,7 @@ async function ensureServerRunning(): Promise<boolean> {
     try {
       const resp = await fetch(`${SERVER_URL}/state`, { signal: AbortSignal.timeout(1000) })
       if (resp.ok) {
-        process.stderr.write(`blackboard-shim: server started (BLACKBOARD_DIR=${projectDir})\n`)
+        process.stderr.write(`blackboard-shim: server started (kapi/ at ${kapiDir})\n`)
         return true
       }
     } catch {}
@@ -478,4 +527,5 @@ if (geminiMode !== 'disabled') {
 
 await ensureServerRunning()
 await register()
+await startHeartbeat()
 ensureDashboardRunning() // non-blocking

@@ -9,12 +9,12 @@ You are implementing tasks for sprint "$ARGUMENTS" of this project.
 
 ## Startup
 
-1. Read `docs/operations/blackboard/board.md` — check for blockers or decisions that affect your work
-2. Read `docs/operations/sprints/$ARGUMENTS/tasks.md` — find the **first unchecked task**
-3. Read `docs/operations/sprints/$ARGUMENTS/prd.md` — understand the sprint goal
+1. Read `kapi/board.md` — check for blockers or decisions that affect your work
+2. Read `kapi/sprints/$ARGUMENTS/tasks.md` — find the **first unchecked task**
+3. Read `kapi/sprints/$ARGUMENTS/prd.md` — understand the sprint goal
 4. Post agent init to board.md:
    - Get timestamp: `date "+%b %-d %-I%p" | tr '[:upper:]' '[:lower:]'`
-   - Also create entry file: `docs/operations/blackboard/entries/{datestamp}-dev-available-v{N}-{task}.md`
+   - Also create entry file: `kapi/entries/{datestamp}-dev-available-v{N}-{task}.md`
      ```yaml
      ---
      type: available
@@ -49,7 +49,7 @@ For each task:
 ## When Blocked
 
 1. Add a note: `**BLOCKED:** {reason}` under the task in tasks.md
-2. Write a blocker entry: `docs/operations/blackboard/entries/{datestamp}-dev-blocker-{slug}.md`
+2. Write a blocker entry: `kapi/entries/{datestamp}-dev-blocker-{slug}.md`
 3. Add to `## Active Blockers` in board.md: `- **Dev** — {reason} → entries/{filename}`
 4. Skip to next task with no unresolved dependencies
 
@@ -64,6 +64,6 @@ For each task:
 ## Conventions
 
 - Skill files go in `.claude/skills/{name}/SKILL.md`
-- Entry files go in `docs/operations/blackboard/entries/{YYYY-MM-DD-HHMM}-{role}-{type}-{slug}.md`
+- Entry files go in `kapi/entries/{YYYY-MM-DD-HHMM}-{role}-{type}-{slug}.md`
 - Never skip a task silently — always note blockers
 - One commit per task

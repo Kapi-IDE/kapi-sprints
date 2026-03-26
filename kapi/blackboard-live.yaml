@@ -1,0 +1,364 @@
+blackboard:
+  project: kapi
+  description: Shared state
+agents:
+  dev1: null
+  shim-58746:
+    status: active
+    last_seen: 2026-03-26T01:15:48Z
+    port: 58746
+    gemini: disabled
+  control-shell:
+    role: scrum master
+    name: control shell
+    status: active
+    model: claude-opus-4-6
+    last_seen: 2026-03-26T01:16:36Z
+  captain:
+    role: Captain
+    status: active
+    model: claude-opus-4-6
+    last_seen: 2026-03-26T01:15:00Z
+  dev2:
+    role: Copilot
+    name: copilot
+    status: active
+    model: claude-opus-4-6
+    last_seen: 2026-03-25T19:51:30Z
+  documenter:
+    role: Documenter
+    status: active
+    model: claude-opus-4-6
+    last_seen: 2026-03-25T20:30:00Z
+  test:
+    role: Test
+    name: test
+    status: active
+    model: claude-opus-4-6
+    last_seen: 2026-03-25T22:12:00Z
+    last_action: "Built test suite: 55 tests across 4 files, all passing"
+directives:
+  - id: d1774478120483
+    title: -- do you hear me?
+    text: -- do you hear me?
+    from: Human
+    posted_at: 2026-03-25T22:35:20Z
+    status: pending
+    assigned_to: dev2
+  - id: d1774486774542
+    title: hi control shell
+    text: hi control shell
+    from: Human
+    posted_at: 2026-03-26T00:59:34Z
+    status: completed
+    assigned_to: control-shell
+  - id: d1774486958569
+    title: are you getting this control shell?
+    text: are you getting this control shell?
+    from: Human
+    posted_at: 2026-03-26T01:02:38Z
+    status: completed
+    assigned_to: control-shell
+  - id: d1774487254094
+    title: hi bro. are you up?
+    text: hi bro. are you up?
+    from: Human
+    posted_at: 2026-03-26T01:07:34Z
+    status: completed
+    assigned_to: control-shell
+  - id: d1774487629345
+    title: Agents other than control shell shoudl not be getting this message. This
+      is a test.
+    text: Agents other than control shell shoudl not be getting this message. This
+      is a test.
+    from: Human
+    posted_at: 2026-03-26T01:13:49Z
+    status: completed
+    assigned_to: control-shell
+log:
+  - ts: 2026-03-25T19:42:41Z
+    entry: Dev 1 re-registered after server restart
+  - ts: 2026-03-25T19:42:55Z
+    entry: Dev 1 keepalive heartbeat
+  - ts: 2026-03-25T19:45:36Z
+    entry: Dev 1 keepalive heartbeat
+  - ts: 2026-03-25T19:48:33Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T19:49:14Z
+    entry: Registered as Captain (Claude Opus 4.6)
+  - ts: 2026-03-25T19:49:20Z
+    entry: Removed dev1 — replaced by captain
+  - ts: 2026-03-25T19:49:55Z
+    entry: Dev 2 re-registered as Copilot
+  - ts: 2026-03-25T19:50:25Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T19:50:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T19:51:13Z
+    entry: "control shell: updated role to scrum master"
+  - ts: 2026-03-25T19:51:46Z
+    entry: Documenter registered — ready for documentation tasks
+  - ts: 2026-03-25T19:51:53Z
+    entry: Copilot (dev2) refreshing status to active
+  - ts: 2026-03-25T19:53:02Z
+    entry: Test agent registered — active and ready
+  - ts: 2026-03-25T19:55:33Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T19:55:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:00:27Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:00:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:05:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:05:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:31:03Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:31:18Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:33:07Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:33:15Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:35:28Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:35:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:40:32Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:42:06Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:45:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:45:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:50:26Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:50:38Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T20:55:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T20:55:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:02:07Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:02:12Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:05:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:05:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:10:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:10:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:15:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:15:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:20:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:20:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:25:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:25:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:30:30Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:30:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:35:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:35:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:40:25Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:40:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:45:22Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:45:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:50:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:50:48Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T21:55:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T21:55:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:00:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:00:33Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:05:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:05:50Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:10:40Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:10:43Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:15:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:15:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:20:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:20:42Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:25:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:25:37Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:30:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:30:48Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:35:20Z
+    entry: "directive posted: -- do you hear me? -> dev2"
+  - ts: 2026-03-25T22:35:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:35:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:40:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:40:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:45:24Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:45:43Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:50:25Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:51:12Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T22:55:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T22:55:36Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:00:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:05:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:05:55Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:10:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:10:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:12:45Z
+    entry: "Test agent: created vitest suite — 55 tests (parsers, backlog, resolve
+      helpers, entry parsing), all green. Build verified."
+  - ts: 2026-03-25T23:15:38Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:15:48Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:20:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:20:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:25:28Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:25:39Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:30:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:30:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:35:22Z
+    entry: control shell heartbeat
+  - ts: 2026-03-25T23:35:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-25T23:55:48Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:00:22Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:05:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:10:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:15:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:20:55Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:25:25Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:30:21Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:35:22Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:40:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:45:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:50:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:52:22Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T00:54:48Z
+    entry: Captain re-registered after server restart
+  - ts: 2026-03-26T00:56:09Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T00:57:22Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T00:59:34Z
+    entry: "directive posted: hi control shell -> control-shell"
+  - ts: 2026-03-26T01:00:41Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T01:00:50Z
+    entry: control shell heartbeat — fixed timestamp drift
+  - ts: 2026-03-26T01:02:25Z
+    entry: "Documenter: completed docs reorganization. design/ consolidated from 8
+      files → 3 (architecture.md, launch-strategy.md, onboarding.md). concepts/
+      streamlined to 4 files anchored on 16 pillars."
+  - ts: 2026-03-26T01:02:38Z
+    entry: "directive posted: are you getting this control shell? -> control-shell"
+  - ts: 2026-03-26T01:05:20Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T01:05:29Z
+    entry: "control shell: acknowledged directive — hi control shell"
+  - ts: 2026-03-26T01:05:30Z
+    entry: "control shell: acknowledged directive — yes, receiving now. Callback
+      registry was empty after server restart; re-registered all shims."
+  - ts: 2026-03-26T01:05:45Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T01:07:34Z
+    entry: "directive posted: hi bro. are you up? -> control-shell"
+  - ts: 2026-03-26T01:07:50Z
+    entry: "control shell: yes I'm up! Channel notifications restored. Ready for
+      work."
+  - ts: 2026-03-26T01:10:23Z
+    entry: control shell heartbeat
+  - ts: 2026-03-26T01:10:34Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T01:13:49Z
+    entry: "directive posted: Agents other than control shell shoudl not be getting
+      this message. This is a test. -> control-shell"
+  - ts: 2026-03-26T01:14:08Z
+    entry: "control shell: received targeted directive. Acknowledged."
+  - ts: 2026-03-26T01:15:35Z
+    entry: Captain keepalive heartbeat
+  - ts: 2026-03-26T01:16:24Z
+    entry: control shell heartbeat — server restarted with targeted routing
+  - ts: 2026-03-26T01:16:42Z
+    entry: control shell heartbeat
+transports:
+  shim-58947:
+    status: active
+    last_seen: 2026-03-26T01:16:00Z
+    port: 58947
+    gemini: disabled
+  shim-61962:
+    status: active
+    last_seen: 2026-03-26T01:16:03Z
+    port: 61962
+    gemini: disabled
+  shim-61963:
+    status: active
+    last_seen: 2026-03-26T01:16:03Z
+    port: 61963
+    gemini: disabled

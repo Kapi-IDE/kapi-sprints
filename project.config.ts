@@ -17,11 +17,11 @@ export const PROJECT = {
   repo: 'https://github.com/Kapi-IDE/kapi-pm',
 
   /**
-   * Absolute path to the target project's docs/operations/ directory.
+   * Absolute path to the target project's kapi/ state directory.
    * The dashboard reads sprint data, blackboard, backlog, etc. from here.
-   * Defaults to ./docs/operations in the current working directory.
+   * Defaults to ./kapi in the current working directory.
    */
-  opsDir: '/Users/bv/Code/active/kapi-platform/docs/operations',
+  opsDir: '/Users/bv/Code/active/kapi-sprints/kapi',
 }
 
 /** Resolved absolute path to the operations directory */
@@ -31,3 +31,6 @@ export const OPS_DIR = path.isAbsolute(PROJECT.opsDir)
 
 /** Resolved absolute path to the docs root (parent of operations) */
 export const DOCS_DIR = path.dirname(OPS_DIR)
+
+/** Shared kapi/ state directory (blackboard, agents, backlog) */
+export const KAPI_DIR = '/Users/bv/Code/active/kapi-sprints/kapi'

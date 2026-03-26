@@ -1,0 +1,33 @@
+# PM-curated sprint snapshot
+# Updated by PM agent after meaningful state changes
+# Dashboard reads this for the status banner and milestones
+
+headline: "v0: dashboard + multi-agent wiring"
+status: green  # green | yellow | red
+phase: build   # plan | build | qa | review | done
+progress: "0/0"
+updated: "2026-03-25T16:30:00Z"
+
+text: |
+  Sprint v0 is in build phase. Dashboard sidebar has been unified
+  across all 3 pages. 6 agents created with MCP blackboard protocol
+  (pm, dev, researcher, reviewer, tester, ux). 5 skills ported from
+  kapi-platform (preflight, scorecard, walkthrough, checkpoint, resume).
+
+  The get-started page still references /sprint init which doesn't
+  exist. Output paths on that page also wrong (says docs/operations/
+  instead of kapi/). These need fixing before docs can ship.
+
+  Next: wire snapshot.yaml into dashboard overview, then UX audit
+  the unified sidebar for consistency.
+
+milestones:
+  - agent: dev
+    text: "Dashboard sidebar streamlined, duplicate logo removed"
+    ts: "2026-03-25T15:45:00Z"
+  - agent: dev
+    text: "6 agent definitions with MCP blackboard protocol"
+    ts: "2026-03-25T16:05:00Z"
+  - agent: dev
+    text: "5 skills ported from kapi-platform"
+    ts: "2026-03-25T16:10:00Z"

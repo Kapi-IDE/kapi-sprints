@@ -29,7 +29,7 @@ Run `date "+%Y-%m-%d-%H%M"` to get the datestamp and `date "+%b %d %I%p"` for th
 
 ## Write the Entry File
 
-Create `docs/operations/blackboard/entries/{datestamp}-{role}-{type}-{slug}.md`:
+Create `kapi/entries/{datestamp}-{role}-{type}-{slug}.md`:
 
 ```markdown
 ---
@@ -48,7 +48,7 @@ The `{slug}` is 2-4 words from the message, hyphenated, lowercase.
 
 ## Update the Right File
 
-**For finding, steer, decision, blocker, available, handoff** — append a bullet to the correct section in `docs/operations/blackboard/board.md`:
+**For finding, steer, decision, blocker, available, handoff** — append a bullet to the correct section in `kapi/board.md`:
 
 | Type | Section |
 |------|---------|
@@ -64,7 +64,7 @@ Format:
 - **{role}** — {message} → `entries/{filename}`
 ```
 
-**For queue** — append to `docs/operations/backlog.md` under `## Inbox`:
+**For queue** — append to `kapi/backlog.md` under `## Inbox`:
 ```
 - [ ] {message} — {role} — {short timestamp}
 ```
