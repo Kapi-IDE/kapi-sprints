@@ -154,52 +154,144 @@ Every human decision — approve, reject, edit — is a labeled training example
 
 - [Node.js](https://nodejs.org) 18+ (for the dashboard)
 - [Bun](https://bun.sh) runtime (for the blackboard server): `curl -fsSL https://bun.sh/install | bash`
-- [Claude Code](https://claude.ai/claude-code) CLI (for running agents)
+- [Claude Code](https://claude.ai/claude-code) CLI: `npm install -g @anthropic-ai/claude-code`
 
-### Setup
+### Step 1: Clone and Install
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/kapihq/kapi-sprints.git
+git clone https://github.com/Kapi-IDE/kapi-sprints.git
 cd kapi-sprints
-
-# 2. Install dependencies
 npm install
 cd blackboard && bun install && cd ..
-
-# 3. Configure your API key (for Gemini MCP tools)
-# Edit .mcp.json — set GEMINI_API_KEY to your key
-# Get a key from your MAI instructor or https://aistudio.google.com/apikey
-
-# 4. Start the dashboard
-npm run dev
-# → Dashboard at http://localhost:8791
-# → Blackboard server at http://localhost:8790 (auto-started)
-
-# 5. Open Claude Code in a separate terminal
-cd /path/to/kapi-sprints
-claude
-# The .mcp.json auto-configures the blackboard channel
 ```
 
-### What you get
+### Step 2: Set Your Gemini API Key
 
-- **Dashboard** at `localhost:8791` — sprint status, agent coordination, decisions, backlog
-- **Blackboard server** at `localhost:8790` — shared state for all agents, WebSocket live updates
-- **Claude Code integration** — `read_blackboard` and `write_to_blackboard` MCP tools in every session
-- **Sprint skills** — `/prd`, `/dev`, `/test`, `/post`, `/preflight`, `/scorecard`, `/walkthrough`, `/checkpoint`, `/resume`
-- **6 agent definitions** — pm, dev, researcher, reviewer, tester, ux
+Open `.mcp.json` and add your Modern AI Pro key (get it from your MAI instructor):
 
-### Your first sprint
+```json
+{
+  "mcpServers": {
+    "blackboard-channel": {
+      "command": "bun",
+      "args": ["blackboard/shim.ts"],
+      "env": {
+        "BLACKBOARD_SERVER": "http://127.0.0.1:8790",
+        "GEMINI_API_KEY": "mai_gk_YOUR_KEY_HERE",
+        "GEMINI_PROXY_URL": "https://learn.modernaipro.com/api/gemini/v1"
+      }
+    }
+  }
+}
+```
+
+This gives your Claude Code agents access to Gemini tools (`gemini_query`, `gemini_review_code`, `gemini_generate_code`, `gemini_explain`) for second opinions and code reviews.
+
+### Step 3: Start the Dashboard
 
 ```bash
-# In Claude Code:
-/preflight       # Check foundation docs exist
-/prd v1          # Plan your first sprint
-/dev v1          # Start implementing tasks
+npm run dev
 ```
 
-Open the dashboard to watch progress in real time.
+- Dashboard: http://localhost:8791
+- Blackboard server: http://localhost:8790 (auto-started)
+
+### Step 4: Launch Your Agent Team
+
+Open **multiple Claude Code terminals** from the repo directory. Each becomes an agent. You must use the `--dangerously-load-development-channels` flag to enable the blackboard channel:
+
+```bash
+# Terminal 1 — PM agent (plans sprints, assigns tasks)
+claude --dangerously-load-development-channels server:blackboard-channel
+
+# Terminal 2 — Dev agent (implements tasks)
+claude --dangerously-load-development-channels server:blackboard-channel
+
+# Terminal 3 — Test agent (runs QA, writes tests)
+claude --dangerously-load-development-channels server:blackboard-channel
+```
+
+> **Why the flag?** Claude Code channels are a new feature. The `--dangerously-load-development-channels` flag enables the blackboard MCP server to send real-time `<channel>` notifications to your agent — this is how agents receive directives and stay coordinated.
+
+Each terminal automatically connects to the blackboard via `.mcp.json`. The agent registers itself, gets `read_blackboard` and `write_to_blackboard` tools, and receives real-time notifications when other agents write.
+
+### Step 5: Run Your First Sprint
+
+In the **PM terminal**:
+
+```bash
+/prd v1          # Plan sprint — brainstorm scope, write PRD + tasks
+```
+
+In the **Dev terminal**:
+
+```bash
+/dev v1          # Pick first task, implement with TDD, commit
+```
+
+In the **Test terminal**:
+
+```bash
+/test v1         # QA gate — build, lint, type check, push
+```
+
+Watch the dashboard update in real time as agents post to the blackboard.
+
+### What You Get
+
+| Component | What it does |
+|-----------|-------------|
+| **Dashboard** (`localhost:8791`) | Sprint progress, agent status, decisions, backlog, lessons |
+| **Blackboard server** (`localhost:8790`) | Shared state — broadcasts writes to all connected agents |
+| **Sprint skills** | `/prd`, `/dev`, `/test`, `/post`, `/review` — the full sprint cycle |
+| **Gemini tools** | `gemini_query`, `gemini_review_code` — second opinions via MAI proxy |
+| **Agent coordination** | Agents register, receive targeted directives, post milestones |
+| **Three memory tiers** | Working (blackboard), Episodic (entries), Semantic (tasks, backlog) |
+
+### The `kapi/` Folder
+
+On first run, the blackboard server creates the `kapi/` folder — your project's shared state:
+
+```
+kapi/
+├── blackboard-live.yaml   # Working memory (ephemeral, auto-created)
+├── snapshot.yaml           # Project status (PM maintains this)
+├── decisions.yaml          # ADRs + agent reviews
+├── backlog.md              # Ideas and future work
+├── lessons.md              # What we learned (append-only)
+├── entries/                # Narrative posts (findings, decisions, blockers)
+├── sprints/v1/             # Sprint PRD + task files
+│   ├── prd.md
+│   └── tasks.md
+└── agents/                 # Agent profiles (auto-created on registration)
+```
+
+### Using the Blackboard from Claude Code
+
+Every agent gets these MCP tools automatically:
+
+```
+# Read the full blackboard state
+Use read_blackboard
+
+# Register yourself as an agent
+Use write_to_blackboard with path "agents.my-name" and value {"role": "Dev", "status": "active"}
+
+# Post a finding
+/post finding "discovered XSS risk in localStorage"
+
+# Post a blocker
+/post blocker "need PM approval on API schema"
+```
+
+### Tips for Students
+
+1. **Always have the dashboard open** — it's your command center
+2. **One agent per terminal** — each Claude Code session is one specialist
+3. **The PM agent coordinates** — it reads the board, assigns tasks via directives, tracks progress
+4. **Use `/post` liberally** — findings, decisions, blockers all go on the board
+5. **Check your agent page** — `localhost:8791/agents/your-name` shows your activity, tasks, milestones
+6. **Gemini for second opinions** — use `gemini_review_code` to get a different AI's perspective on your code
 
 ---
 
