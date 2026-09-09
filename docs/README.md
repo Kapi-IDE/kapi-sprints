@@ -30,6 +30,7 @@ Archived sprint records.
   - [PRD](history/sprints/v2/prd.md) · [Tasks](history/sprints/v2/tasks.md)
 - [Scorecard (v1)](history/scorecard-v1.md) — platform health snapshot from Feb 24
 - [Agent Teams + Sprint Dashboard — the origin research](history/2026-02-20-agent-teams-origin-research.md) — Feb 20, 2026: how the terminal/web split was reached, with the human-confirmed decisions. History, not the current design
+- [Claude Code Agent Teams — research notes, and why we did not build on them](history/2026-02-18-claude-code-agent-teams-research.md) — Feb 18, 2026, re-checked Sep 2026: the feature has task coordination and messaging but still no shared knowledge store, which is the gap this project fills
 - [Board (v1)](history/board-v1.md) — blackboard state snapshot from Feb 24
 - [Blackboard entries](history/entries/) — 3 posts from v1 sprint
 
