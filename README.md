@@ -1,5 +1,7 @@
 # Kapi Sprints
 
+> **Archived — 2026-10-28. Retired and read-only history.** Kapi Sprints is no longer developed. Its ideas — the shared board, the sprint view, waking an agent from the board — live on in **Kapital**, the board product of Kapi Memory ([getkapi.com](https://getkapi.com)). Nothing here is maintained; issues and pull requests won't be answered.
+
 > **Multi-agent coordination for Claude Code human-agent teams.**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
